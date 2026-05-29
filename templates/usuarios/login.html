@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}AUTHENTICATE — NEON MONOLITH{% endblock %}
+{% block content %}
+
+<div style="min-height:100vh; display:flex; background:var(--black);">
+
+  <!-- LEFT: Visual panel -->
+  <div style="flex:1; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:100vh;">
+    <div style="position:absolute; inset:0;
+      background: radial-gradient(ellipse at 50% 40%, rgba(0,255,65,.12) 0%, transparent 65%),
+                  linear-gradient(180deg, #000 0%, #050505 100%);"></div>
+    <div style="position:absolute; inset:0; opacity:.15;
+      background-image: linear-gradient(rgba(0,255,65,.4) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,255,65,.4) 1px, transparent 1px);
+      background-size: 60px 60px;"></div>
+
+    <div style="position:relative; text-align:center; padding:3rem;">
+      <div style="font-family:'Orbitron',monospace; font-size:.7rem; letter-spacing:5px; color:var(--neon); margin-bottom:2rem; opacity:.8;">
+        // NEON MONOLITH //
+      </div>
+      <div style="font-family:'Orbitron',monospace; font-weight:900; font-size:3.2rem; line-height:1; letter-spacing:3px; margin-bottom:.5rem;">
+        ASCEND TO
+      </div>
+      <div style="font-family:'Orbitron',monospace; font-weight:900; font-size:3.2rem; line-height:1; letter-spacing:3px; color:var(--neon); text-shadow: 0 0 30px var(--neon-glow);">
+        TRUE POWER
+      </div>
+      <div style="width:60px; height:2px; background:var(--neon); margin:1.5rem auto; box-shadow:0 0 10px var(--neon-glow);"></div>
+      <p style="color:var(--gray); font-size:.9rem; letter-spacing:1px; max-width:280px; margin:0 auto;">
+        {% trans "La tienda gaming definitiva." %}<br>{% trans "Accede a tu arsenal." %}
+      </p>
+
+      <div style="margin-top:3rem; border:1px solid rgba(0,255,65,.2); border-radius:3px; padding:1rem 1.5rem; background:rgba(0,255,65,.03); display:inline-block;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:.7rem; color:var(--neon); opacity:.7; letter-spacing:2px;">
+          > SYSTEM ONLINE<br>> AWAITING AUTHENTICATION<br>> _
+        </div>
+      </div>
+
+      <!-- Selector de idioma para página de login -->
+      {% load i18n %}
+      {% get_current_language as LANG_CURRENT %}
+      <div style="margin-top:2rem; display:flex; align-items:center; justify-content:center; gap:.4rem;">
+        <form method="post" action="{% url 'set_language' %}" style="display:contents;">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.path }}">
+          <input name="language" type="hidden" value="es">
+          <button type="submit" class="lang-btn {% if LANG_CURRENT == 'es' %}lang-active{% endif %}">ES</button>
+        </form>
+        <span class="lang-sep">/</span>
+        <form method="post" action="{% url 'set_language' %}" style="display:contents;">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.path }}">
+          <input name="language" type="hidden" value="en">
+          <button type="submit" class="lang-btn {% if LANG_CURRENT == 'en' %}lang-active{% endif %}">EN</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Login form -->
+  <div style="width:440px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border2);
+              display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem;">
+    <div style="width:100%;">
+
+      <div class="section-tag mb-2">{% trans "Autenticación // Acceso" %}</div>
+      <h2 style="font-family:'Orbitron',monospace; font-weight:900; font-size:1.4rem; letter-spacing:3px; margin-bottom:.5rem;">
+        AUTHENTICATE
+      </h2>
+      <p style="color:var(--gray); font-size:.85rem; margin-bottom:2rem;">{% trans "Ingresa tus credenciales para continuar." %}</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label-m"><i class="fas fa-at me-1"></i>Email</label>
+          <div class="input-group">
+            <span class="input-group-text" style="border-radius:2px 0 0 2px; padding:.7rem .9rem;">
+              <i class="fas fa-envelope" style="font-size:.8rem;"></i>
+            </span>
+            {{ form.username }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-m"><i class="fas fa-lock me-1"></i>{% trans "Contraseña" %}</label>
+          <div class="input-group">
+            <span class="input-group-text" style="border-radius:2px 0 0 2px; padding:.7rem .9rem;">
+              <i class="fas fa-key" style="font-size:.8rem;"></i>
+            </span>
+            {{ form.password }}
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; color:var(--gray); font-size:.82rem; letter-spacing:.5px;">
+            <input type="checkbox" name="remember_me"> {% trans "Recordarme 7 días" %}
+          </label>
+          <a href="{% url 'recuperar_password' %}" style="color:var(--neon); font-size:.78rem; letter-spacing:.5px; text-decoration:none; opacity:.8;">
+            {% trans "¿Olvidaste la clave?" %}
+          </a>
+        </div>
+
+        {% if form.errors %}
+          <div class="alert-m-danger mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>{% trans "Credenciales incorrectas. Intenta de nuevo." %}
+          </div>
+        {% endif %}
+
+        <button type="submit" class="btn-neon w-100 mb-4" style="justify-content:center;">
+          <i class="fas fa-sign-in-alt"></i> {% trans "INICIAR SESIÓN" %}
+        </button>
+      </form>
+
+      <hr class="divider-m">
+
+      <p style="text-align:center; color:var(--gray); font-size:.85rem; letter-spacing:.5px;">
+        {% trans "¿Nuevo en el sistema?" %}
+        <a href="{% url 'registro' %}" style="color:var(--neon); font-weight:700; text-decoration:none; letter-spacing:1px;">
+          {% trans "CREAR CUENTA" %}
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

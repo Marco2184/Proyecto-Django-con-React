@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+{% load i18n %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}NEON MONOLITH{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black:   #000000;
+      --dark:    #080808;
+      --panel:   #0f0f0f;
+      --panel2:  #141414;
+      --border:  #1c1c1c;
+      --border2: #252525;
+      --neon:    #00ff41;
+      --neon2:   #00cc33;
+      --neon-glow: rgba(0,255,65,.4);
+      --neon-soft: rgba(0,255,65,.07);
+      --purple:  #7b2fff;
+      --white:   #ffffff;
+      --gray:    #777777;
+      --gray2:   #444444;
+      --red:     #ff3333;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      letter-spacing: .3px;
+    }
+    /* scanlines */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:9998;
+      background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,65,.012) 3px,rgba(0,255,65,.012) 4px);
+    }
+
+    /* ── NAVBAR ────────────────────────────────────── */
+    .nav-monolith {
+      background: rgba(0,0,0,.97);
+      border-bottom: 1px solid var(--border);
+      height: 58px; padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top:0; z-index:1000;
+    }
+    .nav-monolith::after {
+      content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+      background: linear-gradient(90deg,transparent 0%,var(--neon) 40%,var(--neon) 60%,transparent 100%);
+      opacity:.25;
+    }
+    .nav-brand {
+      font-family:'Orbitron',monospace; font-weight:900;
+      font-size:1rem; letter-spacing:4px; color:var(--white);
+      text-decoration:none; display:flex; align-items:center; gap:.75rem;
+    }
+    .nav-brand-icon {
+      width:30px; height:30px; border:1.5px solid var(--neon);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.7rem; color:var(--neon);
+      box-shadow: 0 0 10px var(--neon-glow), inset 0 0 6px rgba(0,255,65,.1);
+    }
+    .nav-brand span { color: var(--neon); }
+    .nav-links { display:flex; align-items:center; gap:.15rem; }
+    .nav-link-m {
+      color:var(--gray); font-size:.75rem; font-weight:600; letter-spacing:1.5px;
+      text-transform:uppercase; text-decoration:none;
+      padding:.4rem .9rem; border:1px solid transparent; border-radius:2px;
+      transition:all .15s;
+    }
+    .nav-link-m:hover { color:var(--neon); border-color:rgba(0,255,65,.25); background:var(--neon-soft); }
+    .nav-link-m.active { color:var(--neon); }
+    .nav-user-pill {
+      display:flex; align-items:center; gap:.6rem;
+      background:var(--panel); border:1px solid var(--border2);
+      padding:.3rem .75rem .3rem .4rem; border-radius:2px;
+    }
+    .nav-avatar {
+      width:28px; height:28px; background:var(--neon-soft);
+      border:1px solid var(--neon); border-radius:2px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.65rem; color:var(--neon); font-family:'Orbitron',monospace;
+      font-weight:700;
+    }
+    .nav-username { font-size:.8rem; font-weight:600; color:var(--white); letter-spacing:.5px; }
+    .btn-logout-m {
+      background:transparent; border:1px solid var(--border2);
+      color:var(--gray); font-size:.7rem; font-weight:700; letter-spacing:1.5px;
+      text-transform:uppercase; padding:.3rem .8rem; border-radius:2px;
+      cursor:pointer; transition:all .15s; font-family:'Rajdhani',sans-serif;
+    }
+    .btn-logout-m:hover { border-color:var(--red); color:var(--red); }
+
+    /* ── LANGUAGE SWITCHER ──────────────────────────── */
+    .lang-switcher { display:flex; align-items:center; gap:.2rem; }
+    .lang-btn {
+      background:transparent; border:1px solid var(--border2);
+      color:var(--gray); font-size:.63rem; font-weight:700; letter-spacing:1px;
+      text-transform:uppercase; padding:.25rem .55rem; border-radius:2px;
+      cursor:pointer; transition:all .15s; font-family:'Orbitron',monospace;
+    }
+    .lang-btn:hover { border-color:rgba(0,255,65,.4); color:var(--neon); }
+    .lang-btn.lang-active { border-color:var(--neon); color:var(--neon); background:rgba(0,255,65,.07); }
+    .lang-sep { color:var(--border2); font-size:.7rem; user-select:none; }
+
+    /* ── BUTTONS ────────────────────────────────────── */
+    .btn-neon {
+      background: var(--neon); color: var(--black);
+      border: none; font-family:'Rajdhani',sans-serif; font-weight:700;
+      font-size:.9rem; letter-spacing:2px; text-transform:uppercase;
+      padding:.75rem 2rem; border-radius:2px; cursor:pointer;
+      transition:all .2s; display:inline-flex; align-items:center; gap:.5rem;
+      box-shadow: 0 0 20px rgba(0,255,65,.3);
+    }
+    .btn-neon:hover { background:#00e639; box-shadow:0 0 30px rgba(0,255,65,.5); transform:translateY(-1px); color:var(--black); }
+    .btn-neon:active { transform:translateY(0); }
+    .btn-outline-neon {
+      background:transparent; border:1px solid var(--neon); color:var(--neon);
+      font-family:'Rajdhani',sans-serif; font-weight:700; font-size:.85rem;
+      letter-spacing:2px; text-transform:uppercase;
+      padding:.65rem 1.8rem; border-radius:2px; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-outline-neon:hover { background:var(--neon-soft); box-shadow:0 0 15px rgba(0,255,65,.2); color:var(--neon); }
+    .btn-ghost {
+      background:transparent; border:1px solid var(--border2); color:var(--gray);
+      font-family:'Rajdhani',sans-serif; font-weight:600; font-size:.8rem;
+      letter-spacing:1px; text-transform:uppercase;
+      padding:.5rem 1.2rem; border-radius:2px; cursor:pointer; transition:all .15s;
+    }
+    .btn-ghost:hover { border-color:var(--gray); color:var(--white); }
+
+    /* ── CARDS / PANELS ─────────────────────────────── */
+    .panel-monolith {
+      background:var(--panel); border:1px solid var(--border2);
+      border-radius:3px;
+    }
+    .panel-monolith.neon-border { border-color: rgba(0,255,65,.3); }
+
+    /* ── FORMS ──────────────────────────────────────── */
+    .form-control, .form-select {
+      background: #0a0a0a !important; border: 1px solid var(--border2) !important;
+      color: var(--white) !important; border-radius:2px;
+      padding: .7rem 1rem; font-family:'Rajdhani',sans-serif;
+      font-size:.95rem; letter-spacing:.5px;
+    }
+    .form-control:focus {
+      border-color: var(--neon) !important;
+      box-shadow: 0 0 0 2px rgba(0,255,65,.15) !important;
+      background: #050505 !important;
+    }
+    .form-control::placeholder { color:var(--gray2); }
+    .form-label-m {
+      color:var(--gray); font-size:.72rem; font-weight:700;
+      letter-spacing:2px; text-transform:uppercase; margin-bottom:.4rem;
+      display:block;
+    }
+    .input-group-text {
+      background:#0a0a0a !important; border:1px solid var(--border2) !important;
+      color:var(--gray) !important; border-right:none !important;
+    }
+
+    /* ── SECTION LABEL ──────────────────────────────── */
+    .section-tag {
+      font-family:'Share Tech Mono',monospace; font-size:.65rem;
+      color:var(--neon); letter-spacing:3px; text-transform:uppercase;
+      margin-bottom:.3rem;
+    }
+    .section-title {
+      font-family:'Orbitron',monospace; font-weight:900;
+      font-size:1.6rem; line-height:1.1; letter-spacing:2px;
+    }
+
+    /* ── ALERTS ─────────────────────────────────────── */
+    .alert-m-success {
+      background:rgba(0,255,65,.06); border:1px solid rgba(0,255,65,.3);
+      color:var(--neon); border-radius:2px; padding:.7rem 1rem;
+      font-size:.85rem; letter-spacing:.5px;
+    }
+    .alert-m-danger {
+      background:rgba(255,51,51,.06); border:1px solid rgba(255,51,51,.3);
+      color:#ff6666; border-radius:2px; padding:.7rem 1rem;
+      font-size:.85rem; letter-spacing:.5px;
+    }
+    .alert-m-info {
+      background:rgba(123,47,255,.08); border:1px solid rgba(123,47,255,.3);
+      color:#bb88ff; border-radius:2px; padding:.7rem 1rem;
+      font-size:.85rem; letter-spacing:.5px;
+    }
+
+    /* ── DIVIDER ────────────────────────────────────── */
+    .divider-m {
+      border:none; height:1px;
+      background:linear-gradient(90deg,transparent,var(--border2),transparent);
+      margin:1.25rem 0;
+    }
+
+    /* ── MODAL ──────────────────────────────────────── */
+    .modal-monolith .modal-content {
+      background:var(--panel); border:1px solid rgba(0,255,65,.3);
+      border-radius:3px; color:var(--white);
+      box-shadow: 0 0 40px rgba(0,255,65,.15);
+    }
+    .modal-monolith .modal-header { border-bottom:1px solid var(--border2); }
+    .modal-monolith .modal-footer { border-top:1px solid var(--border2); }
+
+    /* ── CHECKBOX ───────────────────────────────────── */
+    input[type=checkbox] { accent-color:var(--neon); width:14px; height:14px; }
+
+    /* ── SCROLLBAR ──────────────────────────────────── */
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--black); }
+    ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--neon2); }
+
+    /* ── UTILS ──────────────────────────────────────── */
+    .text-neon { color: var(--neon); }
+    .text-mono { font-family:'Share Tech Mono',monospace; }
+    .text-orb  { font-family:'Orbitron',monospace; }
+    .bg-panel  { background: var(--panel); }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+{% get_current_language as LANG_CURRENT %}
+<!-- ── NAVBAR ──────────────────────────────────────────────── -->
+<nav class="nav-monolith">
+  <a href="{% url 'dashboard' %}" class="nav-brand">
+    <div class="nav-brand-icon"><i class="fas fa-bolt"></i></div>
+    NEON<span>MONOLITH</span>
+  </a>
+
+  <div class="nav-links">
+    <a href="{% url 'dashboard' %}" class="nav-link-m {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      {% trans "Command Center" %}
+    </a>
+    <a href="{% url 'catalogo' %}" class="nav-link-m {% if request.resolver_match.url_name == 'catalogo' or request.resolver_match.url_name == 'detalle_producto' %}active{% endif %}">{% trans "The Catalog" %}</a>
+    <a href="{% url 'ver_carrito' %}" class="nav-link-m {% if request.resolver_match.url_name == 'ver_carrito' %}active{% endif %}">{% trans "Your Carrito" %}</a>
+    <a href="#" class="nav-link-m">{% trans "Orders" %}</a>
+    <a href="{% url 'perfil' %}" class="nav-link-m {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">{% trans "Profile" %}</a>
+  </div>
+
+  <div class="d-flex align-items-center gap-2">
+    <div class="nav-user-pill">
+      <div class="nav-avatar">{{ user.nombre|slice:":2"|upper }}</div>
+      <span class="nav-username">{{ user.nombre|truncatechars:14 }}</span>
+    </div>
+
+    <!-- ── SELECTOR DE IDIOMA ────────────────────────── -->
+    <div class="lang-switcher">
+      <form method="post" action="{% url 'set_language' %}" style="display:contents;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <input name="language" type="hidden" value="es">
+        <button type="submit" class="lang-btn {% if LANG_CURRENT == 'es' %}lang-active{% endif %}">ES</button>
+      </form>
+      <span class="lang-sep">/</span>
+      <form method="post" action="{% url 'set_language' %}" style="display:contents;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <input name="language" type="hidden" value="en">
+        <button type="submit" class="lang-btn {% if LANG_CURRENT == 'en' %}lang-active{% endif %}">EN</button>
+      </form>
+    </div>
+
+    <button class="btn-logout-m" data-bs-toggle="modal" data-bs-target="#modalLogout">
+      <i class="fas fa-power-off me-1"></i>{% trans "Logout" %}
+    </button>
+  </div>
+</nav>
+
+<!-- ── LOGOUT MODAL ─────────────────────────────── -->
+<div class="modal fade modal-monolith" id="modalLogout" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+    <div class="modal-content">
+      <div class="modal-header py-3 px-4">
+        <span class="section-tag">{% trans "Sistema // Sesión" %}</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 py-4 text-center">
+        <div style="font-size:2.5rem; margin-bottom:1rem; color:var(--neon);">
+          <i class="fas fa-power-off"></i>
+        </div>
+        <h5 class="text-orb mb-2" style="letter-spacing:2px;">TERMINATE SESSION</h5>
+        <p style="color:var(--gray); font-size:.9rem;">
+          {% trans "¿Confirmas que deseas cerrar sesión?" %}<br>
+          <small>{% trans "Tu carrito y datos permanecerán guardados." %}</small>
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center gap-3 py-3">
+        <button class="btn-ghost" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-neon" style="padding:.6rem 1.5rem;">
+            <i class="fas fa-power-off"></i> {% trans "Confirmar" %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── MESSAGES ──────────────────────────────────────────── -->
+{% if messages %}
+<div style="position:fixed; top:70px; right:1.5rem; z-index:5000; min-width:300px; max-width:380px;">
+  {% for msg in messages %}
+  <div class="alert-m-{% if msg.tags == 'success' %}success{% elif msg.tags == 'error' %}danger{% else %}info{% endif %} mb-2 d-flex align-items-start gap-2">
+    <i class="fas fa-{% if msg.tags == 'success' %}check-circle{% elif msg.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} mt-1" style="flex-shrink:0;"></i>
+    <span>{{ msg }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

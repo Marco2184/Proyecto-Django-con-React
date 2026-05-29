@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% if modo == 'agregar' %}{% trans "AGREGAR DIRECCIÓN" %}{% else %}{% trans "EDITAR DIRECCIÓN" %}{% endif %} — MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);background:var(--black);padding:2.5rem 1.5rem;">
+  <div style="max-width:620px;margin:0 auto;">
+
+    <div class="section-tag mb-1">
+      {% if modo == 'agregar' %}{% trans "Perfil // Nueva dirección" %}{% else %}{% trans "Perfil // Editar dirección" %}{% endif %}
+    </div>
+    <h1 style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.5rem;letter-spacing:3px;margin-bottom:2rem;">
+      {% if modo == 'agregar' %}{% trans "AGREGAR DIRECCIÓN" %}{% else %}{% trans "EDITAR DIRECCIÓN" %}{% endif %}
+    </h1>
+
+    {% if modo == 'editar' and direccion %}
+    <div style="margin-bottom:1.5rem;font-size:.8rem;color:var(--gray);
+                font-family:'Share Tech Mono',monospace;letter-spacing:1px;">
+      {% blocktrans with calle=direccion.calle ciudad=direccion.ciudad %}Editando: {{ calle }}, {{ ciudad }}{% endblocktrans %}
+    </div>
+    {% endif %}
+
+    <div class="panel-monolith" style="padding:2rem;border-top:2px solid var(--neon);">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div style="margin-bottom:1.25rem;">
+          <label class="form-label-m">{% trans "Calle y número *" %}</label>
+          {{ form.calle }}
+          {% if form.calle.errors %}
+          <div class="alert-m-danger mt-2" style="padding:.4rem .75rem;font-size:.8rem;">
+            {{ form.calle.errors.0 }}
+          </div>
+          {% endif %}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+          <div>
+            <label class="form-label-m">{% trans "Ciudad *" %}</label>
+            {{ form.ciudad }}
+            {% if form.ciudad.errors %}
+            <div class="alert-m-danger mt-2" style="padding:.4rem .75rem;font-size:.8rem;">
+              {{ form.ciudad.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+          <div>
+            <label class="form-label-m">{% trans "Código postal *" %}</label>
+            {{ form.codigo_postal }}
+            {% if form.codigo_postal.errors %}
+            <div class="alert-m-danger mt-2" style="padding:.4rem .75rem;font-size:.8rem;">
+              {{ form.codigo_postal.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.75rem;">
+          <label class="form-label-m">{% trans "Departamento *" %}</label>
+          {{ form.departamento }}
+          {% if form.departamento.errors %}
+          <div class="alert-m-danger mt-2" style="padding:.4rem .75rem;font-size:.8rem;">
+            {{ form.departamento.errors.0 }}
+          </div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert-m-danger mb-3">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+          <button type="submit" class="btn-neon" style="flex:1;min-width:140px;">
+            <i class="fas fa-{% if modo == 'agregar' %}plus{% else %}check{% endif %} me-1"></i>
+            {% if modo == 'agregar' %}{% trans "Agregar dirección" %}{% else %}{% trans "Guardar cambios" %}{% endif %}
+          </button>
+          <a href="{% url 'listar_direcciones' %}" class="btn-ghost"
+             style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+                    text-decoration:none;padding:.6rem 1.5rem;">
+            {% trans "Cancelar" %}
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <a href="{% url 'listar_direcciones' %}" style="color:var(--gray);text-decoration:none;font-size:.85rem;">
+        {% trans "← Volver a mis direcciones" %}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

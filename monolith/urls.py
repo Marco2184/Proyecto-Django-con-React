@@ -1,0 +1,60 @@
+from django.contrib import admin
+from django.urls import path, include
+from django.http import JsonResponse
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from productos.api import ProductoViewSet, PlataformaViewSet, CategoriaViewSet
+from usuarios import api as usuarios_api
+from carrito import api as carrito_api
+
+router = DefaultRouter()
+router.register(r'api/productos', ProductoViewSet, basename='api-producto')
+router.register(r'api/plataformas', PlataformaViewSet, basename='api-plataforma')
+router.register(r'api/categorias', CategoriaViewSet, basename='api-categoria')
+
+
+def api_root(request):
+    return JsonResponse({
+        'name': 'Monolith API',
+        'frontend': settings.FRONTEND_URL,
+        'endpoints': {
+            'productos': '/api/productos/',
+            'auth': '/api/auth/login/',
+            'perfil': '/api/auth/me/',
+            'carrito': '/api/cart/',
+        }
+    })
+
+urlpatterns = [
+    path('', api_root),
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('admin/', admin.site.urls),
+
+    # API Auth / Perfil / Traducción
+    path('api/auth/register/', usuarios_api.register),
+    path('api/auth/login/', usuarios_api.login_api),
+    path('api/auth/logout/', usuarios_api.logout_api),
+    path('api/auth/me/', usuarios_api.me),
+    path('api/auth/verify/<uuid:token>/', usuarios_api.verify_email),
+    path('api/auth/resend-verification/', usuarios_api.resend_verification),
+    path('api/auth/forgot-password/', usuarios_api.forgot_password),
+    path('api/auth/reset-password/<uuid:token>/', usuarios_api.reset_password),
+    path('api/auth/change-password/', usuarios_api.change_password),
+    path('api/auth/delete-account/', usuarios_api.delete_account),
+    path('api/profile/addresses/', usuarios_api.addresses),
+    path('api/profile/addresses/<int:pk>/', usuarios_api.address_detail),
+    path('api/profile/orders/', usuarios_api.orders),
+    path('api/i18n/set-language/', usuarios_api.set_language),
+
+    # API Carrito
+    path('api/cart/', carrito_api.cart_detail),
+    path('api/cart/add/', carrito_api.cart_add),
+    path('api/cart/items/<int:item_id>/', carrito_api.cart_item),
+    path('api/cart/clear/', carrito_api.cart_clear),
+
+    # Rutas antiguas conservadas como backend legacy/template, sin borrar tu Django previo.
+    path('', include('usuarios.urls')),
+    path('catalogo/', include('productos.urls')),
+    path('carrito/', include('carrito.urls')),
+] + router.urls + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}EDITAR PERFIL — MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);background:var(--black);padding:2.5rem;display:flex;align-items:flex-start;justify-content:center;">
+  <div style="width:100%;max-width:480px;">
+    <div class="section-tag mb-1">{% trans "Perfil // Editar Datos" %}</div>
+    <h2 style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.3rem;letter-spacing:3px;margin-bottom:2rem;">
+      UPDATE PROFILE
+    </h2>
+    <div class="panel-monolith neon-border" style="padding:2rem;">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-4">
+          <label class="form-label-m"><i class="fas fa-user me-1"></i>{% trans "Nombre completo" %}</label>
+          {{ form.nombre }}
+          {% if form.nombre.errors %}<div style="color:#ff6666;font-size:.78rem;margin-top:.3rem;">{{ form.nombre.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label class="form-label-m"><i class="fas fa-phone me-1"></i>{% trans "Teléfono" %}</label>
+          {{ form.telefono }}
+        </div>
+        <div style="display:flex;gap:1rem;">
+          <button type="submit" class="btn-neon flex-fill" style="justify-content:center;">
+            <i class="fas fa-save"></i> {% trans "GUARDAR" %}
+          </button>
+          <a href="{% url 'perfil' %}" class="btn-ghost flex-fill" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">
+            {% trans "CANCELAR" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ producto.nombre }} — MONOLITH{% endblock %}
+
+{% block extra_css %}
+<style>
+.gallery-thumb { width:70px; height:70px; object-fit:cover; cursor:pointer; border:2px solid transparent; border-radius:2px; transition:all .15s; }
+.gallery-thumb:hover, .gallery-thumb.active { border-color:var(--neon); }
+.spec-row { display:flex; border-bottom:1px solid #1a1a1a; padding:.5rem 0; }
+.spec-key { color:var(--gray); font-size:.82rem; width:160px; flex-shrink:0; }
+.spec-val { color:#fff; font-size:.82rem; }
+.similar-card { background:#0f0f0f; border:1px solid #1e1e1e; border-radius:3px; overflow:hidden; transition:all .2s; text-decoration:none; color:inherit; display:block; }
+.similar-card:hover { border-color:rgba(0,255,65,.3); transform:translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="min-height:calc(100vh-58px); background:#000; padding:2rem;">
+  <div style="max-width:1100px; margin:0 auto;">
+
+    <!-- Breadcrumb -->
+    <div style="font-size:.78rem; color:var(--gray); margin-bottom:1.5rem; letter-spacing:.5px;">
+      <a href="{% url 'catalogo' %}" style="color:var(--gray); text-decoration:none;">THE CATALOG</a>
+      <span style="margin:0 .5rem; color:#333;">/</span>
+      {% if producto.categoria %}
+        <a href="{% url 'catalogo' %}?categoria={{ producto.categoria.slug }}" style="color:var(--gray); text-decoration:none;">{{ producto.categoria.nombre }}</a>
+        <span style="margin:0 .5rem; color:#333;">/</span>
+      {% endif %}
+      <span style="color:var(--neon);">{{ producto.nombre|truncatechars:40 }}</span>
+    </div>
+
+    <!-- Main product section -->
+    <div style="display:grid; grid-template-columns:1fr 420px; gap:2rem; margin-bottom:3rem;">
+
+      <!-- LEFT: Images -->
+      <div>
+        <div style="background:#0a0a0a; border:1px solid #1e1e1e; border-radius:3px; height:420px; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:.75rem;">
+          {% if producto.imagen %}
+            <img id="mainImg" src="{{ producto.imagen }}" alt="{{ producto.nombre }}" style="max-width:100%; max-height:100%; object-fit:contain;">
+          {% else %}
+            <div style="font-size:5rem; opacity:.15;">🎮</div>
+          {% endif %}
+        </div>
+        {% if galeria %}
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          {% if producto.imagen %}
+          <img src="{{ producto.imagen }}" class="gallery-thumb active" onclick="changeImg(this, '{{ producto.imagen }}')">
+          {% endif %}
+          {% for img in galeria %}
+            {% if img.url or img.imagen %}
+            <img src="{% if img.imagen %}{{ img.imagen.url }}{% else %}{{ img.url }}{% endif %}"
+                 class="gallery-thumb" onclick="changeImg(this, this.src)">
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- RIGHT: Info -->
+      <div>
+        <div class="section-tag mb-2">{{ producto.categoria.nombre|default:"Producto" }}</div>
+        <h1 style="font-family:'Orbitron',monospace; font-weight:900; font-size:1.4rem; letter-spacing:2px; line-height:1.2; margin-bottom:1rem;">
+          {{ producto.nombre }}
+        </h1>
+
+        <!-- Plataformas -->
+        <div style="display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem;">
+          {% for plat in producto.plataformas.all %}
+            <span style="font-size:.72rem; background:rgba(0,255,65,.08); border:1px solid rgba(0,255,65,.2); color:var(--neon); padding:.2rem .6rem; border-radius:2px; letter-spacing:1px;">{{ plat.nombre }}</span>
+          {% endfor %}
+        </div>
+
+        <!-- Precio -->
+        <div style="margin-bottom:1.25rem;">
+          {% if producto.tiene_descuento %}
+            <div style="display:flex; align-items:center; gap:.75rem;">
+              <span style="font-family:'Orbitron',monospace; font-weight:900; font-size:2rem; color:var(--neon);">S/ {{ producto.precio }}</span>
+              <div>
+                <div style="color:#555; font-size:.9rem; text-decoration:line-through;">S/ {{ producto.precio_original }}</div>
+                <div style="background:rgba(0,255,65,.1); color:var(--neon); font-size:.72rem; padding:.1rem .4rem; border-radius:2px; display:inline-block;">
+                  -{{ producto.porcentaje_descuento }}% OFF
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <span style="font-family:'Orbitron',monospace; font-weight:900; font-size:2rem; color:var(--neon);">S/ {{ producto.precio }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Stock -->
+        <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:1.5rem; padding:.6rem .9rem; background:#0a0a0a; border:1px solid #1e1e1e; border-radius:2px; display:inline-flex;">
+          <div style="width:8px; height:8px; border-radius:50%; background:{% if producto.disponible %}var(--neon){% else %}#ff3333{% endif %}; box-shadow:0 0 6px {% if producto.disponible %}var(--neon-glow){% else %}rgba(255,51,51,.4){% endif %};"></div>
+          <span style="font-size:.82rem; color:{% if producto.disponible %}var(--neon){% else %}#ff6666{% endif %}; letter-spacing:.5px;">
+            {% if producto.disponible %}{% blocktrans with stock=producto.stock %}DISPONIBLE — {{ stock }} unidades{% endblocktrans %}{% else %}{% trans "SIN STOCK" %}{% endif %}
+          </span>
+        </div>
+
+        <!-- Botón agregar al carrito -->
+        <div style="margin-bottom:1.5rem;">
+          {% if producto.disponible %}
+          <form method="post" action="{% url 'agregar_item' producto.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-neon w-100" style="justify-content:center;">
+              <i class="fas fa-shopping-cart"></i> {% trans "AGREGAR AL CARRITO" %}
+            </button>
+          </form>
+          {% else %}
+          <button class="btn-neon w-100" style="justify-content:center; opacity:.4; cursor:not-allowed;" disabled>
+            <i class="fas fa-shopping-cart"></i> {% trans "SIN STOCK" %}
+          </button>
+          {% endif %}
+        </div>
+
+        <!-- Descripción -->
+        {% if producto.descripcion %}
+        <div style="color:var(--gray); font-size:.88rem; line-height:1.6; border-top:1px solid #1a1a1a; padding-top:1rem;">
+          {{ producto.descripcion }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Especificaciones técnicas -->
+    {% if specs %}
+    <div style="margin-bottom:3rem;">
+      <div class="section-tag mb-2">{% trans "Producto // Especificaciones" %}</div>
+      <h4 style="font-family:'Orbitron',monospace; font-weight:700; font-size:1rem; letter-spacing:2px; margin-bottom:1rem;">TECHNICAL SPECS</h4>
+      <div style="background:#0a0a0a; border:1px solid #1e1e1e; border-radius:3px; padding:1rem 1.25rem;">
+        {% for key, val in specs.items %}
+        <div class="spec-row">
+          <div class="spec-key">{{ key }}</div>
+          <div class="spec-val">{{ val }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Productos similares -->
+    {% if similares %}
+    <div style="margin-bottom:3rem;">
+      <div class="section-tag mb-2">{% trans "Descubre // Similar" %}</div>
+      <h4 style="font-family:'Orbitron',monospace; font-weight:700; font-size:1rem; letter-spacing:2px; margin-bottom:1rem;">SIMILAR PRODUCTS</h4>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;">
+        {% for p in similares %}
+        <a href="{% url 'detalle_producto' p.slug %}" class="similar-card">
+          <div style="height:130px; background:#080808; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            {% if p.imagen %}<img src="{{ p.imagen }}" style="width:100%; height:100%; object-fit:cover;">{% else %}<span style="font-size:2rem; opacity:.2;">🎮</span>{% endif %}
+          </div>
+          <div style="padding:.75rem;">
+            <div style="font-size:.8rem; font-weight:600; margin-bottom:.3rem;">{{ p.nombre|truncatechars:35 }}</div>
+            <div style="color:var(--neon); font-size:.82rem; font-weight:700;">S/ {{ p.precio }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Frecuentemente juntos -->
+    {% if juntos %}
+    <div>
+      <div class="section-tag mb-2">{% trans "Recomendado // Juntos" %}</div>
+      <h4 style="font-family:'Orbitron',monospace; font-weight:700; font-size:1rem; letter-spacing:2px; margin-bottom:1rem;">FREQUENTLY BOUGHT TOGETHER</h4>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;">
+        {% for p in juntos %}
+        <a href="{% url 'detalle_producto' p.slug %}" class="similar-card">
+          <div style="height:130px; background:#080808; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            {% if p.imagen %}<img src="{{ p.imagen }}" style="width:100%; height:100%; object-fit:cover;">{% else %}<span style="font-size:2rem; opacity:.2;">🎮</span>{% endif %}
+          </div>
+          <div style="padding:.75rem;">
+            <div style="font-size:.8rem; font-weight:600; margin-bottom:.3rem;">{{ p.nombre|truncatechars:35 }}</div>
+            <div style="color:var(--neon); font-size:.82rem; font-weight:700;">S/ {{ p.precio }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeImg(thumb, src) {
+  document.getElementById('mainImg').src = src;
+  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+</script>
+{% endblock %}

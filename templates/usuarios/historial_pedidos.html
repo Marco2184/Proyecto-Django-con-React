@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}HISTORIAL DE PEDIDOS — MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);background:var(--black);padding:2.5rem 1.5rem;">
+  <div style="max-width:1020px;margin:0 auto;">
+
+    <div class="section-tag mb-1">{% trans "Perfil // Pedidos" %}</div>
+    <h1 style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.5rem;letter-spacing:3px;margin-bottom:2rem;">
+      {% trans "HISTORIAL DE PEDIDOS" %}
+    </h1>
+
+    <!-- Filtros -->
+    <div class="panel-monolith" style="padding:1.5rem;margin-bottom:1.5rem;border-left:2px solid var(--neon);">
+      <div class="section-tag" style="margin-bottom:1rem;">{% trans "Filtrar pedidos" %}</div>
+      <form method="get" novalidate>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:1rem;align-items:end;flex-wrap:wrap;">
+          <div>
+            <label class="form-label-m">{{ form.fecha_desde.label }}</label>
+            {{ form.fecha_desde }}
+          </div>
+          <div>
+            <label class="form-label-m">{{ form.fecha_hasta.label }}</label>
+            {{ form.fecha_hasta }}
+          </div>
+          <div>
+            <label class="form-label-m">{{ form.estado.label }}</label>
+            {{ form.estado }}
+          </div>
+          <div>
+            <button type="submit" class="btn-neon" style="width:100%;padding:.68rem 1.25rem;font-size:.85rem;">
+              <i class="fas fa-filter me-1"></i>{% trans "Filtrar" %}
+            </button>
+          </div>
+        </div>
+        {% if request.GET.fecha_desde or request.GET.fecha_hasta or request.GET.estado %}
+        <div style="margin-top:.9rem;">
+          <a href="{% url 'historial_pedidos' %}" style="color:var(--gray);font-size:.78rem;text-decoration:none;
+             letter-spacing:.5px;">
+            <i class="fas fa-times me-1"></i>{% trans "Limpiar filtros" %}
+          </a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Tabla de pedidos -->
+    {% if pedidos %}
+    <div class="panel-monolith" style="overflow:hidden;margin-bottom:1.5rem;">
+
+      <!-- Cabecera -->
+      <div style="display:grid;grid-template-columns:160px 1fr 120px 130px;gap:1rem;
+                  padding:.75rem 1.5rem;background:var(--panel2);border-bottom:1px solid var(--border2);">
+        <div class="form-label-m" style="margin:0;">{% trans "# Pedido" %}</div>
+        <div class="form-label-m" style="margin:0;">{% trans "Fecha" %}</div>
+        <div class="form-label-m" style="margin:0;text-align:right;">{% trans "Monto total" %}</div>
+        <div class="form-label-m" style="margin:0;text-align:center;">{% trans "Estado" %}</div>
+      </div>
+
+      <!-- Filas -->
+      {% for pedido in pedidos %}
+      <div style="display:grid;grid-template-columns:160px 1fr 120px 130px;gap:1rem;
+                  padding:1rem 1.5rem;align-items:center;
+                  border-bottom:{% if not forloop.last %}1px solid var(--border){% else %}none{% endif %};
+                  transition:background .15s;"
+           onmouseover="this.style.background='rgba(0,255,65,.025)'"
+           onmouseout="this.style.background=''">
+
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--neon);">
+          #{{ pedido.numero }}
+        </div>
+        <div style="font-size:.88rem;color:var(--gray);">
+          {{ pedido.fecha|date:"d/m/Y H:i" }}
+        </div>
+        <div style="font-weight:700;font-family:'Orbitron',monospace;font-size:.82rem;text-align:right;">
+          S/ {{ pedido.monto_total }}
+        </div>
+        <div style="text-align:center;">
+          <span style="font-size:.68rem;padding:.22rem .7rem;border-radius:2px;white-space:nowrap;
+            {% if pedido.estado == 'entregado' %}background:rgba(0,255,65,.1);color:var(--neon);border:1px solid rgba(0,255,65,.3);
+            {% elif pedido.estado == 'cancelado' %}background:rgba(255,51,51,.1);color:#ff6666;border:1px solid rgba(255,51,51,.3);
+            {% elif pedido.estado == 'enviado' %}background:rgba(0,204,255,.1);color:#00ccff;border:1px solid rgba(0,204,255,.3);
+            {% elif pedido.estado == 'procesando' %}background:rgba(123,47,255,.1);color:#bb88ff;border:1px solid rgba(123,47,255,.3);
+            {% else %}background:rgba(247,183,49,.1);color:#f7b731;border:1px solid rgba(247,183,49,.3);{% endif %}">
+            {{ pedido.get_estado_display }}
+          </span>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if pedidos.has_other_pages %}
+    <div style="display:flex;justify-content:center;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+
+      {% if pedidos.has_previous %}
+      <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pedidos.previous_page_number }}"
+         class="btn-ghost" style="font-size:.75rem;padding:.4rem .9rem;text-decoration:none;">
+        {% trans "← Anterior" %}
+      </a>
+      {% endif %}
+
+      {% for n in pedidos.paginator.page_range %}
+        {% if n == pedidos.number %}
+        <span class="btn-neon" style="font-size:.75rem;padding:.4rem .85rem;cursor:default;">{{ n }}</span>
+        {% elif n >= pedidos.number|add:"-2" and n <= pedidos.number|add:"2" %}
+        <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ n }}"
+           class="btn-ghost" style="font-size:.75rem;padding:.4rem .85rem;text-decoration:none;">{{ n }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if pedidos.has_next %}
+      <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pedidos.next_page_number }}"
+         class="btn-ghost" style="font-size:.75rem;padding:.4rem .9rem;text-decoration:none;">
+        {% trans "Siguiente →" %}
+      </a>
+      {% endif %}
+
+    </div>
+    <div style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--gray);
+                margin-bottom:1.5rem;">
+      {% blocktrans with page=pedidos.number total=pedidos.paginator.num_pages %}Página {{ page }} de {{ total }}{% endblocktrans %}
+      &nbsp;·&nbsp;
+      {% blocktrans count count=pedidos.paginator.count %}{{ count }} pedido en total{% plural %}{{ count }} pedidos en total{% endblocktrans %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Estado vacío -->
+    <div class="panel-monolith" style="padding:3.5rem 2rem;text-align:center;">
+      <i class="fas fa-box-open"
+         style="font-size:2.5rem;color:rgba(0,255,65,.15);display:block;margin-bottom:1rem;"></i>
+      <div style="color:var(--gray);font-size:.9rem;margin-bottom:1rem;">
+        {% if request.GET.fecha_desde or request.GET.fecha_hasta or request.GET.estado %}
+          {% trans "No se encontraron pedidos con los filtros aplicados." %}
+        {% else %}
+          {% trans "Aún no tienes pedidos registrados." %}
+        {% endif %}
+      </div>
+      {% if request.GET.fecha_desde or request.GET.fecha_hasta or request.GET.estado %}
+      <a href="{% url 'historial_pedidos' %}" class="btn-outline-neon" style="font-size:.82rem;">
+        <i class="fas fa-times me-1"></i>{% trans "Limpiar filtros" %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top:1.5rem;">
+      <a href="{% url 'perfil' %}" style="color:var(--gray);text-decoration:none;font-size:.85rem;">
+        {% trans "← Volver al perfil" %}
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

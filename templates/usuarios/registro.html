@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}JOIN THE PROTOCOL — NEON MONOLITH{% endblock %}
+{% block content %}
+
+<div style="min-height:100vh; display:flex; background:var(--black);">
+
+  <!-- LEFT: Brand panel -->
+  <div style="flex:1; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+    <div style="position:absolute; inset:0;
+      background: radial-gradient(ellipse at 30% 60%, rgba(0,255,65,.1) 0%, transparent 60%),
+                  #000;"></div>
+    <div style="position:absolute; inset:0; opacity:.1;
+      background-image: linear-gradient(rgba(0,255,65,.5) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,255,65,.5) 1px, transparent 1px);
+      background-size: 50px 50px;"></div>
+    <div style="position:relative; padding:3rem; text-align:center;">
+      <div style="font-family:'Orbitron',monospace; font-size:.65rem; letter-spacing:5px; color:var(--neon); margin-bottom:2rem; opacity:.7;">
+        // INITIALIZING //
+      </div>
+      <div style="font-family:'Orbitron',monospace; font-weight:900; font-size:2.8rem; line-height:1; letter-spacing:2px;">
+        THE NEON
+      </div>
+      <div style="font-family:'Orbitron',monospace; font-weight:900; font-size:2.8rem; line-height:1; letter-spacing:2px; color:var(--neon); text-shadow:0 0 25px var(--neon-glow);">
+        MONOLITH
+      </div>
+      <div style="width:50px; height:2px; background:var(--neon); margin:1.5rem auto; box-shadow:0 0 10px var(--neon-glow);"></div>
+      <p style="color:var(--gray); font-size:.88rem; letter-spacing:.8px; max-width:260px; margin:0 auto;">
+        {% trans "Únete al protocolo. Accede a la mayor colección gaming del sistema." %}
+      </p>
+      <div style="margin-top:2.5rem; font-family:'Share Tech Mono',monospace; font-size:.68rem; color:rgba(0,255,65,.5); letter-spacing:2px; line-height:1.8;">
+        > REGISTRO DISPONIBLE<br>> PROTOCOLO SEGURO<br>> BIENVENIDO AL SISTEMA
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Register form -->
+  <div style="width:460px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border2);
+              display:flex; align-items:center; justify-content:center; padding:3rem 2.5rem; overflow-y:auto;">
+    <div style="width:100%;">
+
+      <div class="section-tag mb-2">{% trans "Nuevo Usuario // Registro" %}</div>
+      <h2 style="font-family:'Orbitron',monospace; font-weight:900; font-size:1.3rem; letter-spacing:3px; margin-bottom:.4rem;">
+        JOIN THE PROTOCOL
+      </h2>
+      <p style="color:var(--gray); font-size:.85rem; margin-bottom:1.8rem; letter-spacing:.3px;">
+        {% trans "Crea tu cuenta y empieza a jugar." %}
+      </p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label-m"><i class="fas fa-user me-1"></i>{% trans "Nombre completo" %}</label>
+          {{ form.nombre }}
+          {% if form.nombre.errors %}
+            <div style="color:#ff6666; font-size:.78rem; margin-top:.3rem; letter-spacing:.3px;">
+              <i class="fas fa-exclamation-circle me-1"></i>{{ form.nombre.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-m"><i class="fas fa-at me-1"></i>{% trans "Correo electrónico" %}</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div style="color:#ff6666; font-size:.78rem; margin-top:.3rem;">
+              <i class="fas fa-exclamation-circle me-1"></i>{{ form.email.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-m"><i class="fas fa-lock me-1"></i>{% trans "Contraseña" %}</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <div style="color:#ff6666; font-size:.78rem; margin-top:.3rem;">
+              <i class="fas fa-exclamation-circle me-1"></i>{{ form.password1.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label-m"><i class="fas fa-lock me-1"></i>{% trans "Confirmar contraseña" %}</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <div style="color:#ff6666; font-size:.78rem; margin-top:.3rem;">
+              <i class="fas fa-exclamation-circle me-1"></i>{{ form.password2.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert-m-danger mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ form.non_field_errors.0 }}
+          </div>
+        {% endif %}
+
+        <div class="alert-m-info mb-4" style="font-size:.8rem;">
+          <i class="fas fa-envelope me-2"></i>
+          {% trans "Recibirás un correo de bienvenida y un enlace de verificación." %}
+        </div>
+
+        <button type="submit" class="btn-neon w-100 mb-3" style="justify-content:center;">
+          <i class="fas fa-user-plus"></i> {% trans "CREAR CUENTA" %}
+        </button>
+      </form>
+
+      <hr class="divider-m">
+      <p style="text-align:center; color:var(--gray); font-size:.85rem;">
+        {% trans "¿Ya tienes acceso?" %}
+        <a href="{% url 'login' %}" style="color:var(--neon); font-weight:700; text-decoration:none; letter-spacing:1px;">
+          {% trans "AUTENTICAR" %}
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

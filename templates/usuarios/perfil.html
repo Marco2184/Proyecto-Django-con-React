@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}USER PROFILE — MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);background:var(--black);padding:2.5rem 1.5rem;">
+  <div style="max-width:920px;margin:0 auto;">
+
+    <div class="section-tag mb-1">{% trans "Sistema // Perfil de Usuario" %}</div>
+    <h1 style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.6rem;letter-spacing:3px;margin-bottom:2rem;">
+      USER PROFILE
+    </h1>
+
+    <!-- Datos del usuario -->
+    <div class="panel-monolith" style="padding:2rem;margin-bottom:1.25rem;border-top:2px solid var(--neon);">
+      <div style="display:flex;align-items:flex-start;gap:1.75rem;flex-wrap:wrap;">
+
+        <!-- Avatar -->
+        <div style="width:80px;height:80px;background:rgba(0,255,65,.07);border:2px solid var(--neon);
+                    display:flex;align-items:center;justify-content:center;
+                    font-family:'Orbitron',monospace;font-weight:900;font-size:1.6rem;
+                    color:var(--neon);flex-shrink:0;box-shadow:0 0 20px rgba(0,255,65,.15);">
+          {{ user.nombre|slice:":2"|upper }}
+        </div>
+
+        <!-- Datos -->
+        <div style="flex:1;min-width:260px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;">
+            <div class="section-tag" style="margin:0;">{% trans "Información personal" %}</div>
+            <a href="{% url 'editar_perfil' %}" class="btn-outline-neon" style="font-size:.75rem;padding:.4rem 1.2rem;">
+              <i class="fas fa-pen me-1"></i>{% trans "Editar datos" %}
+            </a>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;">
+
+            <div>
+              <div class="form-label-m">{% trans "Nombre completo" %}</div>
+              <div style="font-size:1rem;font-weight:700;letter-spacing:.5px;">{{ user.nombre }}</div>
+            </div>
+
+            <div>
+              <div class="form-label-m">{% trans "Correo electrónico" %}</div>
+              <div style="font-size:.88rem;color:var(--gray);word-break:break-all;">
+                {{ user.email }}
+                {% if user.email_verificado %}
+                  <span style="display:inline-block;margin-left:.4rem;color:var(--neon);font-size:.62rem;
+                         border:1px solid rgba(0,255,65,.3);padding:.1rem .5rem;border-radius:2px;
+                         background:rgba(0,255,65,.06);vertical-align:middle;">
+                    <i class="fas fa-check me-1"></i>VERIFIED
+                  </span>
+                {% else %}
+                  <span style="display:inline-block;margin-left:.4rem;color:#f7b731;font-size:.62rem;
+                         border:1px solid rgba(247,183,49,.3);padding:.1rem .5rem;border-radius:2px;
+                         background:rgba(247,183,49,.06);vertical-align:middle;">
+                    UNVERIFIED
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <div class="form-label-m">{% trans "Teléfono" %}</div>
+              <div style="font-size:.95rem;font-weight:600;">
+                {% if user.telefono %}
+                  {{ user.telefono }}
+                {% else %}
+                  <span style="color:var(--gray2);font-size:.82rem;font-style:italic;">{% trans "Sin registrar" %}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <div class="form-label-m">{% trans "Miembro desde" %}</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:rgba(0,255,65,.55);">
+                {{ user.fecha_registro|date:"d/m/Y" }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actividad reciente -->
+    <div class="panel-monolith" style="padding:1.75rem;margin-bottom:1.25rem;border-left:2px solid var(--neon);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+        <div>
+          <div class="section-tag" style="margin:0;">{% trans "Actividad reciente" %}</div>
+          {% if user.last_login %}
+          <div style="font-size:.76rem;color:var(--gray);margin-top:.3rem;font-family:'Share Tech Mono',monospace;">
+            {% blocktrans with fecha=user.last_login|date:"d/m/Y H:i" %}Último acceso: {{ fecha }}{% endblocktrans %}
+          </div>
+          {% endif %}
+        </div>
+        <a href="{% url 'historial_pedidos' %}" class="btn-ghost" style="font-size:.73rem;padding:.35rem .9rem;">
+          {% trans "Ver historial completo →" %}
+        </a>
+      </div>
+
+      {% if ultimos_pedidos %}
+      <div style="border:1px solid var(--border2);border-radius:2px;overflow:hidden;">
+        {% for pedido in ultimos_pedidos %}
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:.85rem 1.1rem;gap:1rem;
+                    border-bottom:{% if not forloop.last %}1px solid var(--border){% else %}none{% endif %};
+                    transition:background .15s;"
+             onmouseover="this.style.background='rgba(0,255,65,.03)'"
+             onmouseout="this.style.background=''">
+          <div style="display:flex;align-items:center;gap:1.25rem;">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--neon);min-width:100px;">
+              #{{ pedido.numero }}
+            </div>
+            <div style="font-size:.8rem;color:var(--gray);">{{ pedido.fecha|date:"d/m/Y" }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div style="font-weight:700;font-size:.9rem;font-family:'Orbitron',monospace;font-size:.82rem;">
+              S/ {{ pedido.monto_total }}
+            </div>
+            <span style="font-size:.68rem;padding:.22rem .65rem;border-radius:2px;white-space:nowrap;
+              {% if pedido.estado == 'entregado' %}background:rgba(0,255,65,.1);color:var(--neon);border:1px solid rgba(0,255,65,.3);
+              {% elif pedido.estado == 'cancelado' %}background:rgba(255,51,51,.1);color:#ff6666;border:1px solid rgba(255,51,51,.3);
+              {% elif pedido.estado == 'enviado' %}background:rgba(0,204,255,.1);color:#00ccff;border:1px solid rgba(0,204,255,.3);
+              {% elif pedido.estado == 'procesando' %}background:rgba(123,47,255,.1);color:#bb88ff;border:1px solid rgba(123,47,255,.3);
+              {% else %}background:rgba(247,183,49,.1);color:#f7b731;border:1px solid rgba(247,183,49,.3);{% endif %}">
+              {{ pedido.get_estado_display }}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:2.5rem 1rem;color:var(--gray);">
+        <i class="fas fa-box-open" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.25;"></i>
+        <span style="font-size:.85rem;">{% trans "Aún no tienes pedidos registrados." %}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;">
+
+      <a href="{% url 'editar_perfil' %}" style="text-decoration:none;">
+        <div class="panel-monolith" style="padding:1.25rem;border-left:2px solid var(--neon);text-align:center;
+                    cursor:pointer;transition:background .15s;"
+             onmouseover="this.style.background='rgba(0,255,65,.04)'"
+             onmouseout="this.style.background=''">
+          <i class="fas fa-pen" style="font-size:1.3rem;color:var(--neon);display:block;margin-bottom:.5rem;"></i>
+          <div style="font-weight:700;font-size:.82rem;letter-spacing:.5px;">{% trans "Editar datos" %}</div>
+          <div style="color:var(--gray);font-size:.72rem;margin-top:.2rem;">{% trans "Nombre y teléfono" %}</div>
+        </div>
+      </a>
+
+      <a href="{% url 'cambiar_password' %}" style="text-decoration:none;">
+        <div class="panel-monolith" style="padding:1.25rem;border-left:2px solid #7b2fff;text-align:center;
+                    cursor:pointer;transition:background .15s;"
+             onmouseover="this.style.background='rgba(123,47,255,.04)'"
+             onmouseout="this.style.background=''">
+          <i class="fas fa-lock" style="font-size:1.3rem;color:#7b2fff;display:block;margin-bottom:.5rem;"></i>
+          <div style="font-weight:700;font-size:.82rem;letter-spacing:.5px;">{% trans "Contraseña" %}</div>
+          <div style="color:var(--gray);font-size:.72rem;margin-top:.2rem;">{% trans "Cambiar clave" %}</div>
+        </div>
+      </a>
+
+      <a href="{% url 'listar_direcciones' %}" style="text-decoration:none;">
+        <div class="panel-monolith" style="padding:1.25rem;border-left:2px solid #00ccff;text-align:center;
+                    cursor:pointer;transition:background .15s;"
+             onmouseover="this.style.background='rgba(0,204,255,.04)'"
+             onmouseout="this.style.background=''">
+          <i class="fas fa-map-marker-alt" style="font-size:1.3rem;color:#00ccff;display:block;margin-bottom:.5rem;"></i>
+          <div style="font-weight:700;font-size:.82rem;letter-spacing:.5px;">{% trans "Direcciones" %}</div>
+          <div style="color:var(--gray);font-size:.72rem;margin-top:.2rem;">{% trans "Gestionar envíos" %}</div>
+        </div>
+      </a>
+
+      <a href="{% url 'historial_pedidos' %}" style="text-decoration:none;">
+        <div class="panel-monolith" style="padding:1.25rem;border-left:2px solid #f7b731;text-align:center;
+                    cursor:pointer;transition:background .15s;"
+             onmouseover="this.style.background='rgba(247,183,49,.04)'"
+             onmouseout="this.style.background=''">
+          <i class="fas fa-box" style="font-size:1.3rem;color:#f7b731;display:block;margin-bottom:.5rem;"></i>
+          <div style="font-weight:700;font-size:.82rem;letter-spacing:.5px;">{% trans "Mis pedidos" %}</div>
+          <div style="color:var(--gray);font-size:.72rem;margin-top:.2rem;">{% trans "Historial completo" %}</div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Pie -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+      <a href="{% url 'dashboard' %}" style="color:var(--gray);text-decoration:none;font-size:.85rem;letter-spacing:.5px;">
+        {% trans "← Volver al Command Center" %}
+      </a>
+      <a href="{% url 'eliminar_cuenta' %}" style="color:var(--red);text-decoration:none;font-size:.75rem;opacity:.5;">
+        {% trans "Eliminar cuenta" %}
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

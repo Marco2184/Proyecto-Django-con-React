@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}YOUR CARRITO — MONOLITH{% endblock %}
+
+{% block extra_css %}
+<style>
+.cart-item { background:#0f0f0f; border:1px solid #1e1e1e; border-radius:3px; transition:all .15s; }
+.cart-item:hover { border-color:rgba(0,255,65,.2); }
+.cart-thumb { width:80px; height:80px; object-fit:cover; background:#080808; border-radius:2px; cursor:pointer; }
+.qty-btn { width:28px; height:28px; background:#1a1a1a; border:1px solid #2a2a2a; color:var(--neon); cursor:pointer; font-weight:700; border-radius:2px; transition:all .15s; }
+.qty-btn:hover { background:rgba(0,255,65,.1); border-color:var(--neon); }
+.cat-header { font-family:'Orbitron',monospace; font-size:.72rem; letter-spacing:2px; color:var(--neon); text-transform:uppercase; padding:.4rem 0; border-bottom:1px solid #1a1a1a; margin-bottom:.75rem; }
+.rec-card { background:#0f0f0f; border:1px solid #1e1e1e; border-radius:3px; overflow:hidden; transition:all .15s; }
+.rec-card:hover { border-color:rgba(0,255,65,.3); }
+.tooltip-spec { position:relative; }
+.tooltip-spec .spec-pop { display:none; position:absolute; bottom:100%; left:0; background:#161616; border:1px solid var(--neon); border-radius:3px; padding:.6rem .8rem; z-index:50; width:200px; font-size:.72rem; }
+.tooltip-spec:hover .spec-pop { display:block; }
+.modal-img-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:9999; align-items:center; justify-content:center; }
+.modal-img-overlay.show { display:flex; }
+.tipo-tab { padding:.35rem .85rem; font-size:.75rem; border:1px solid #2a2a2a; border-radius:2px; color:#888; text-decoration:none; letter-spacing:.5px; transition:all .15s; }
+.tipo-tab:hover, .tipo-tab.active { border-color:var(--neon); color:var(--neon); background:rgba(0,255,65,.06); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="min-height:calc(100vh - 58px); background:#000; padding:2rem;">
+  <div style="max-width:1150px; margin:0 auto;">
+
+    <!-- Header -->
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:1.5rem; padding-bottom:1.25rem; border-bottom:1px solid var(--border);">
+      <div>
+        <div class="section-tag mb-1">{% trans "Inventario // Carrito" %}</div>
+        <h1 style="font-family:'Orbitron',monospace; font-weight:900; font-size:1.6rem; letter-spacing:3px;">YOUR CARRITO</h1>
+        <div style="color:var(--gray); font-size:.82rem; margin-top:.25rem;">
+          {% blocktrans count count=carrito.cantidad_items %}{{ count }} ítem en el carrito{% plural %}{{ count }} ítems en el carrito{% endblocktrans %}
+        </div>
+      </div>
+      <a href="{% url 'catalogo' %}" class="btn-outline-neon" style="text-decoration:none; padding:.6rem 1.4rem;">
+        <i class="fas fa-arrow-left me-1"></i> {% trans "SEGUIR COMPRANDO" %}
+      </a>
+    </div>
+
+    {% if carrito.vacio %}
+    <!-- Carrito vacío -->
+    <div style="text-align:center; padding:5rem 2rem;">
+      <div style="font-size:4rem; margin-bottom:1rem; opacity:.2;">🛒</div>
+      <h3 style="font-family:'Orbitron',monospace; letter-spacing:3px; margin-bottom:.5rem;">YOUR INVENTORY IS EMPTY</h3>
+      <p style="color:var(--gray); font-size:.9rem; margin-bottom:1.5rem;">{% trans "Aún no has agregado productos a tu carrito." %}</p>
+      <a href="{% url 'catalogo' %}" class="btn-neon" style="text-decoration:none; display:inline-flex;">
+        <i class="fas fa-gamepad"></i> {% trans "EXPLORAR CATÁLOGO" %}
+      </a>
+    </div>
+    {% else %}
+
+    <!-- Buscar desde el carrito -->
+    <div style="position:relative; margin-bottom:1.25rem;">
+      <input type="text" id="cartSearch" placeholder="{% trans 'Buscar productos para agregar (mín. 3 letras)...' %}"
+             style="width:100%; background:#0a0a0a; border:1px solid #2a2a2a; color:#fff; padding:.65rem 1rem .65rem 2.4rem; border-radius:2px; font-size:.88rem; font-family:'Rajdhani',sans-serif;"
+             oninput="buscarCarrito(this.value)">
+      <i class="fas fa-search" style="position:absolute; left:.8rem; top:50%; transform:translateY(-50%); color:#555; font-size:.8rem;"></i>
+      <div id="cartSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:#111; border:1px solid #2a2a2a; border-top:none; z-index:100; max-height:300px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- Aviso plataformas mezcladas -->
+    {% if plataformas_mezcladas %}
+    <div class="alert-m-info mb-3" style="font-size:.83rem;">
+      <i class="fas fa-info-circle me-2"></i>
+      {% blocktrans with plataformas=plataformas_carrito|join:", " %}Tu carrito tiene productos de diferentes plataformas: <strong>{{ plataformas }}</strong>. Verifica la compatibilidad antes de comprar.{% endblocktrans %}
+    </div>
+    {% endif %}
+
+    <div style="display:grid; grid-template-columns:1fr 320px; gap:1.5rem;">
+
+      <!-- LEFT: Items -->
+      <div>
+        <!-- Filtro por tipo + ordenamiento -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.75rem;">
+          <div style="display:flex; gap:.4rem; flex-wrap:wrap;">
+            <a href="{% url 'ver_carrito' %}{% if orden %}?orden={{ orden }}{% endif %}" class="tipo-tab {% if not tipo_sel %}active{% endif %}">{% trans "Todos" %}</a>
+            {% for cat in categorias_carrito %}
+            <a href="?tipo={{ cat.slug }}{% if orden %}&orden={{ orden }}{% endif %}" class="tipo-tab {% if tipo_sel == cat.slug %}active{% endif %}">{{ cat.nombre }}</a>
+            {% endfor %}
+          </div>
+          <select onchange="window.location.href=this.value"
+                  style="background:#111; border:1px solid #2a2a2a; color:#fff; padding:.35rem .7rem; border-radius:2px; font-size:.78rem; cursor:pointer;">
+            <option value="{% url 'ver_carrito' %}{% if tipo_sel %}?tipo={{ tipo_sel }}{% endif %}">{% trans "Ordenar por..." %}</option>
+            <option value="?{% if tipo_sel %}tipo={{ tipo_sel }}&{% endif %}orden=precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>{% trans "Precio: menor a mayor" %}</option>
+            <option value="?{% if tipo_sel %}tipo={{ tipo_sel }}&{% endif %}orden=precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>{% trans "Precio: mayor a menor" %}</option>
+            <option value="?{% if tipo_sel %}tipo={{ tipo_sel }}&{% endif %}orden=popularidad" {% if orden == 'popularidad' %}selected{% endif %}>{% trans "Más populares" %}</option>
+          </select>
+        </div>
+
+        <!-- Items agrupados por categoría -->
+        {% if not tipo_sel %}
+          {% for categoria, cat_items in agrupado.items %}
+          <div style="margin-bottom:1.25rem;">
+            <div class="cat-header"><i class="fas fa-folder me-1"></i>{{ categoria }} ({{ cat_items|length }})</div>
+            {% for item in cat_items %}
+            {% include 'carrito/_item.html' with item=item %}
+            {% endfor %}
+          </div>
+          {% endfor %}
+        {% else %}
+          {% for item in items %}
+          {% include 'carrito/_item.html' with item=item %}
+          {% endfor %}
+        {% endif %}
+
+        <!-- Vaciar carrito -->
+        <form method="post" action="{% url 'vaciar_carrito' %}" style="margin-top:1rem;"
+              onsubmit="return confirm('{% trans "¿Vaciar todo el carrito?" %}')">
+          {% csrf_token %}
+          <button class="btn-ghost" style="font-size:.75rem;">
+            <i class="fas fa-trash me-1"></i>{% trans "Vaciar carrito" %}
+          </button>
+        </form>
+      </div>
+
+      <!-- RIGHT: Resumen -->
+      <div>
+        <div class="panel-monolith neon-border" style="padding:1.5rem; position:sticky; top:78px;">
+          <div class="section-tag mb-3">{% trans "Resumen // Total" %}</div>
+
+          <div style="display:flex; justify-content:space-between; margin-bottom:.6rem; font-size:.88rem; color:var(--gray);">
+            <span>{% blocktrans with count=carrito.cantidad_items %}Productos ({{ count }}){% endblocktrans %}</span>
+            <span style="color:#fff;">S/ {{ carrito.total }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:.6rem; font-size:.88rem; color:var(--gray);">
+            <span>{% trans "Envío" %}</span>
+            <span style="color:var(--neon);">{% trans "Gratis" %}</span>
+          </div>
+          <hr class="divider-m">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <span style="font-family:'Orbitron',monospace; font-weight:700; letter-spacing:1px;">TOTAL</span>
+            <span style="font-family:'Orbitron',monospace; font-weight:900; font-size:1.4rem; color:var(--neon);">
+              S/ {{ carrito.total }}
+            </span>
+          </div>
+          <button class="btn-neon w-100" style="justify-content:center;">
+            <i class="fas fa-bolt"></i> {% trans "PROCEDER AL PAGO" %}
+          </button>
+          <div style="text-align:center; margin-top:.75rem; font-size:.72rem; color:#555;">
+            <i class="fas fa-lock me-1"></i>{% trans "Checkout disponible en Sprint 4" %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos recomendados -->
+    {% if recomendados %}
+    <div style="margin-top:2.5rem;">
+      <div class="section-tag mb-2">{% trans "Descubre // Recomendados" %}</div>
+      <h4 style="font-family:'Orbitron',monospace; font-weight:700; font-size:1rem; letter-spacing:2px; margin-bottom:1rem;">
+        {% trans "TAMBIÉN PODRÍA INTERESARTE" %}
+      </h4>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;">
+        {% for p in recomendados %}
+        <div class="rec-card">
+          <a href="{% url 'detalle_producto' p.slug %}" style="text-decoration:none; color:inherit;">
+            <div style="height:120px; background:#080808; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+              {% if p.imagen %}<img src="{{ p.imagen }}" style="width:100%; height:100%; object-fit:cover;">{% else %}<span style="font-size:2rem; opacity:.2;">🎮</span>{% endif %}
+            </div>
+            <div style="padding:.7rem;">
+              <div style="font-size:.78rem; font-weight:600; margin-bottom:.25rem;">{{ p.nombre|truncatechars:32 }}</div>
+              <div style="color:var(--neon); font-size:.82rem; font-weight:700;">S/ {{ p.precio }}</div>
+            </div>
+          </a>
+          <form method="post" action="{% url 'agregar_item' p.id %}" style="padding:0 .7rem .7rem;">
+            {% csrf_token %}
+            <button class="btn-outline-neon w-100" style="padding:.35rem; font-size:.7rem;">+ {% trans "AGREGAR" %}</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Accesorios complementarios -->
+    {% if accesorios %}
+    <div style="margin-top:2rem;">
+      <div class="section-tag mb-2">{% trans "Completa tu setup // Accesorios" %}</div>
+      <h4 style="font-family:'Orbitron',monospace; font-weight:700; font-size:1rem; letter-spacing:2px; margin-bottom:1rem;">
+        {% trans "ACCESORIOS COMPATIBLES" %}
+      </h4>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;">
+        {% for p in accesorios %}
+        <div class="rec-card">
+          <a href="{% url 'detalle_producto' p.slug %}" style="text-decoration:none; color:inherit;">
+            <div style="height:120px; background:#080808; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+              {% if p.imagen %}<img src="{{ p.imagen }}" style="width:100%; height:100%; object-fit:cover;">{% else %}<span style="font-size:2rem; opacity:.2;">🎧</span>{% endif %}
+            </div>
+            <div style="padding:.7rem;">
+              <div style="font-size:.78rem; font-weight:600; margin-bottom:.25rem;">{{ p.nombre|truncatechars:32 }}</div>
+              <div style="color:var(--neon); font-size:.82rem; font-weight:700;">S/ {{ p.precio }}</div>
+            </div>
+          </a>
+          <form method="post" action="{% url 'agregar_item' p.id %}" style="padding:0 .7rem .7rem;">
+            {% csrf_token %}
+            <button class="btn-outline-neon w-100" style="padding:.35rem; font-size:.7rem;">+ {% trans "AGREGAR" %}</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal imagen ampliada -->
+<div class="modal-img-overlay" id="imgModal" onclick="this.classList.remove('show')">
+  <img id="imgModalContent" src="" style="max-width:80%; max-height:80%; object-fit:contain; border:1px solid var(--neon);">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function ampliarImagen(src) {
+  if (!src) return;
+  document.getElementById('imgModalContent').src = src;
+  document.getElementById('imgModal').classList.add('show');
+}
+
+let cartTimeout;
+function buscarCarrito(q) {
+  clearTimeout(cartTimeout);
+  const box = document.getElementById('cartSuggestions');
+  if (q.trim().length < 3) { box.style.display='none'; return; }
+  cartTimeout = setTimeout(() => {
+    fetch(`{% url 'buscar_en_carrito' %}?q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.resultados.length) { box.style.display='none'; return; }
+        box.innerHTML = data.resultados.map(p => `
+          <div style="padding:.6rem 1rem; display:flex; align-items:center; gap:.75rem; border-bottom:1px solid #1a1a1a;">
+            <div style="width:38px; height:38px; background:#1a1a1a; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:1.1rem;">
+              ${p.imagen ? `<img src="${p.imagen}" style="width:100%;height:100%;object-fit:cover;">` : '🎮'}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:.82rem; font-weight:600;">${p.nombre}</div>
+              <div style="color:var(--neon); font-size:.75rem;">S/ ${p.precio}</div>
+            </div>
+            <form method="post" action="/carrito/agregar/${p.id}/">
+              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+              <button class="btn-outline-neon" style="padding:.25rem .6rem; font-size:.68rem;"
+                      ${p.stock === 0 ? 'disabled' : ''}>
+                ${p.stock === 0 ? 'SIN STOCK' : '+ AGREGAR'}
+              </button>
+            </form>
+          </div>`).join('');
+        box.style.display='block';
+      });
+  }, 300);
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#cartSearch') && !e.target.closest('#cartSuggestions'))
+    document.getElementById('cartSuggestions').style.display='none';
+});
+</script>
+{% endblock %}

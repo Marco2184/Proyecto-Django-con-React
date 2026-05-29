@@ -1,0 +1,548 @@
+# English translations for NEON MONOLITH
+# Copyright (C) 2025
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# ── base.html ──────────────────────────────────────────────
+msgid "Sistema // Sesión"
+msgstr "System // Session"
+
+msgid "¿Confirmas que deseas cerrar sesión?"
+msgstr "Are you sure you want to log out?"
+
+msgid "Tu carrito y datos permanecerán guardados."
+msgstr "Your cart and data will remain saved."
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Confirmar"
+msgstr "Confirm"
+
+msgid "Command Center"
+msgstr "Command Center"
+
+msgid "The Catalog"
+msgstr "The Catalog"
+
+msgid "Your Cache"
+msgstr "Your Cache"
+
+msgid "Orders"
+msgstr "Orders"
+
+msgid "Profile"
+msgstr "Profile"
+
+msgid "Logout"
+msgstr "Logout"
+
+# ── login.html ─────────────────────────────────────────────
+msgid "La tienda gaming definitiva."
+msgstr "The ultimate gaming store."
+
+msgid "Accede a tu arsenal."
+msgstr "Access your arsenal."
+
+msgid "Autenticación // Acceso"
+msgstr "Authentication // Access"
+
+msgid "Ingresa tus credenciales para continuar."
+msgstr "Enter your credentials to continue."
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "Recordarme 7 días"
+msgstr "Remember me 7 days"
+
+msgid "¿Olvidaste la clave?"
+msgstr "Forgot your password?"
+
+msgid "Credenciales incorrectas. Intenta de nuevo."
+msgstr "Incorrect credentials. Try again."
+
+msgid "INICIAR SESIÓN"
+msgstr "LOG IN"
+
+msgid "¿Nuevo en el sistema?"
+msgstr "New to the system?"
+
+msgid "CREAR CUENTA"
+msgstr "CREATE ACCOUNT"
+
+# ── registro.html ──────────────────────────────────────────
+msgid "Únete al protocolo. Accede a la mayor colección gaming del sistema."
+msgstr "Join the protocol. Access the largest gaming collection in the system."
+
+msgid "Nuevo Usuario // Registro"
+msgstr "New User // Registration"
+
+msgid "Crea tu cuenta y empieza a jugar."
+msgstr "Create your account and start playing."
+
+msgid "Nombre completo"
+msgstr "Full name"
+
+msgid "Correo electrónico"
+msgstr "Email address"
+
+msgid "Confirmar contraseña"
+msgstr "Confirm password"
+
+msgid "Recibirás un correo de bienvenida y un enlace de verificación."
+msgstr "You'll receive a welcome email and a verification link."
+
+msgid "¿Ya tienes acceso?"
+msgstr "Already have access?"
+
+msgid "AUTENTICAR"
+msgstr "AUTHENTICATE"
+
+# ── dashboard.html ─────────────────────────────────────────
+msgid "Panel // Usuario"
+msgstr "Dashboard // User"
+
+msgid "Bienvenido,"
+msgstr "Welcome,"
+
+msgid "MEMBER SINCE:"
+msgstr "MEMBER SINCE:"
+
+msgid "STATUS:"
+msgstr "STATUS:"
+
+msgid "ACTIVE"
+msgstr "ACTIVE"
+
+msgid "EMAIL SIN VERIFICAR"
+msgstr "UNVERIFIED EMAIL"
+
+msgid "Revisa tu correo"
+msgstr "Check your email"
+
+msgid "y haz clic en el enlace de verificación."
+msgstr "and click the verification link."
+
+msgid "Reenviar →"
+msgstr "Resend →"
+
+# ── perfil.html ────────────────────────────────────────────
+msgid "Sistema // Perfil de Usuario"
+msgstr "System // User Profile"
+
+msgid "Información personal"
+msgstr "Personal information"
+
+msgid "Editar datos"
+msgstr "Edit data"
+
+msgid "Teléfono"
+msgstr "Phone"
+
+msgid "Sin registrar"
+msgstr "Not registered"
+
+msgid "Miembro desde"
+msgstr "Member since"
+
+msgid "Actividad reciente"
+msgstr "Recent activity"
+
+msgid "Último acceso: %(fecha)s"
+msgstr "Last access: %(fecha)s"
+
+msgid "Ver historial completo →"
+msgstr "View full history →"
+
+msgid "Aún no tienes pedidos registrados."
+msgstr "You have no orders yet."
+
+msgid "Nombre y teléfono"
+msgstr "Name and phone"
+
+msgid "Cambiar clave"
+msgstr "Change password"
+
+msgid "Direcciones"
+msgstr "Addresses"
+
+msgid "Gestionar envíos"
+msgstr "Manage shipments"
+
+msgid "Mis pedidos"
+msgstr "My orders"
+
+msgid "Historial completo"
+msgstr "Complete history"
+
+msgid "← Volver al Command Center"
+msgstr "← Back to Command Center"
+
+msgid "Eliminar cuenta"
+msgstr "Delete account"
+
+# ── editar_perfil.html ─────────────────────────────────────
+msgid "Perfil // Editar Datos"
+msgstr "Profile // Edit Data"
+
+msgid "GUARDAR"
+msgstr "SAVE"
+
+msgid "CANCELAR"
+msgstr "CANCEL"
+
+# ── cambiar_password.html ──────────────────────────────────
+msgid "Perfil // Seguridad"
+msgstr "Profile // Security"
+
+msgid "Contraseña actual"
+msgstr "Current password"
+
+msgid "Nueva contraseña"
+msgstr "New password"
+
+msgid "Confirmar nueva contraseña"
+msgstr "Confirm new password"
+
+msgid "ACTUALIZAR"
+msgstr "UPDATE"
+
+# ── recuperar_password.html ────────────────────────────────
+msgid "Sistema // Recuperación"
+msgstr "System // Recovery"
+
+msgid "Ingresa tu correo para restablecer el acceso al sistema."
+msgstr "Enter your email to restore access to the system."
+
+msgid "Correo registrado"
+msgstr "Registered email"
+
+msgid "ENVIAR ENLACE"
+msgstr "SEND LINK"
+
+msgid "← VOLVER AL LOGIN"
+msgstr "← BACK TO LOGIN"
+
+# ── nueva_password.html ────────────────────────────────────
+msgid "Sistema // Nueva Clave"
+msgstr "System // New Password"
+
+msgid "Establece tu nueva contraseña de acceso."
+msgstr "Set your new access password."
+
+msgid "ACTUALIZAR CONTRASEÑA"
+msgstr "UPDATE PASSWORD"
+
+# ── direcciones_lista.html ─────────────────────────────────
+msgid "Perfil // Envíos"
+msgstr "Profile // Shipping"
+
+msgid "MIS DIRECCIONES"
+msgstr "MY ADDRESSES"
+
+msgid "Agregar dirección"
+msgstr "Add address"
+
+msgid "PREDETERMINADA"
+msgstr "DEFAULT"
+
+msgid "Editar"
+msgstr "Edit"
+
+msgid "Eliminar"
+msgstr "Delete"
+
+msgid "No tienes direcciones de envío registradas."
+msgstr "You have no registered shipping addresses."
+
+msgid "Agregar primera dirección"
+msgstr "Add first address"
+
+msgid "← Volver al perfil"
+msgstr "← Back to profile"
+
+msgid "Confirmar eliminación"
+msgstr "Confirm deletion"
+
+msgid "¿Deseas eliminar esta dirección de envío?"
+msgstr "Do you want to delete this shipping address?"
+
+# ── direccion_form.html ────────────────────────────────────
+msgid "Perfil // Nueva dirección"
+msgstr "Profile // New address"
+
+msgid "Perfil // Editar dirección"
+msgstr "Profile // Edit address"
+
+msgid "AGREGAR DIRECCIÓN"
+msgstr "ADD ADDRESS"
+
+msgid "EDITAR DIRECCIÓN"
+msgstr "EDIT ADDRESS"
+
+msgid "Editando: %(calle)s, %(ciudad)s"
+msgstr "Editing: %(calle)s, %(ciudad)s"
+
+msgid "Calle y número *"
+msgstr "Street and number *"
+
+msgid "Ciudad *"
+msgstr "City *"
+
+msgid "Código postal *"
+msgstr "Postal code *"
+
+msgid "Departamento *"
+msgstr "Department *"
+
+msgid "Guardar cambios"
+msgstr "Save changes"
+
+# ── historial_pedidos.html ─────────────────────────────────
+msgid "Perfil // Pedidos"
+msgstr "Profile // Orders"
+
+msgid "HISTORIAL DE PEDIDOS"
+msgstr "ORDER HISTORY"
+
+msgid "Filtrar pedidos"
+msgstr "Filter orders"
+
+msgid "Filtrar"
+msgstr "Filter"
+
+msgid "Limpiar filtros"
+msgstr "Clear filters"
+
+msgid "# Pedido"
+msgstr "# Order"
+
+msgid "Fecha"
+msgstr "Date"
+
+msgid "Monto total"
+msgstr "Total amount"
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "← Anterior"
+msgstr "← Previous"
+
+msgid "Página %(page)s de %(total)s"
+msgstr "Page %(page)s of %(total)s"
+
+msgid "%(count)s pedido en total"
+msgid_plural "%(count)s pedidos en total"
+msgstr[0] "%(count)s order in total"
+msgstr[1] "%(count)s orders in total"
+
+msgid "Siguiente →"
+msgstr "Next →"
+
+msgid "No se encontraron pedidos con los filtros aplicados."
+msgstr "No orders found with the applied filters."
+
+# ── eliminar_cuenta.html ───────────────────────────────────
+msgid "Sistema // Peligro"
+msgstr "System // Danger"
+
+msgid "Esta acción es irreversible. Tu cuenta será desactivada y tus datos personales eliminados."
+msgstr "This action is irreversible. Your account will be deactivated and your personal data deleted."
+
+msgid "ADVERTENCIA:"
+msgstr "WARNING:"
+
+msgid "Al confirmar, tu acceso será revocado permanentemente."
+msgstr "Upon confirmation, your access will be permanently revoked."
+
+msgid "Confirma tu contraseña"
+msgstr "Confirm your password"
+
+msgid "Tu contraseña actual"
+msgstr "Your current password"
+
+msgid "ELIMINAR"
+msgstr "DELETE"
+
+# ── verificar_pendiente.html ───────────────────────────────
+msgid "Verifica tu correo"
+msgstr "Verify your email"
+
+msgid "Enviamos un enlace de verificación a"
+msgstr "We sent a verification link to"
+
+msgid "Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta."
+msgstr "Check your inbox and click the link to activate your account."
+
+msgid "Reenviar correo"
+msgstr "Resend email"
+
+msgid "Volver al login"
+msgstr "Back to login"
+
+# ── catalogo.html ──────────────────────────────────────────
+msgid "Filtros"
+msgstr "Filters"
+
+msgid "Plataforma"
+msgstr "Platform"
+
+msgid "Categoría"
+msgstr "Category"
+
+msgid "Productos // Catálogo"
+msgstr "Products // Catalog"
+
+msgid "%(total)s producto encontrado"
+msgid_plural "%(total)s productos encontrados"
+msgstr[0] "%(total)s product found"
+msgstr[1] "%(total)s products found"
+
+msgid "Ordenar:"
+msgstr "Sort:"
+
+msgid "Más populares"
+msgstr "Most popular"
+
+msgid "Precio: menor a mayor"
+msgstr "Price: low to high"
+
+msgid "Precio: mayor a menor"
+msgstr "Price: high to low"
+
+msgid "Más recientes"
+msgstr "Most recent"
+
+msgid "Buscar juegos, consolas, accesorios..."
+msgstr "Search games, consoles, accessories..."
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Limpiar"
+msgstr "Clear"
+
+msgid "AGOTADO"
+msgstr "OUT OF STOCK"
+
+msgid "Disponible (%(stock)s)"
+msgstr "Available (%(stock)s)"
+
+msgid "Sin stock"
+msgstr "Out of stock"
+
+msgid "SIN RESULTADOS"
+msgstr "NO RESULTS"
+
+msgid "No se encontraron productos con esos filtros."
+msgstr "No products found with those filters."
+
+msgid "Ver todo el catálogo"
+msgstr "View all catalog"
+
+msgid "Todas"
+msgstr "All"
+
+# ── detalle.html ───────────────────────────────────────────
+msgid "Producto // Especificaciones"
+msgstr "Product // Specifications"
+
+msgid "Descubre // Similar"
+msgstr "Discover // Similar"
+
+msgid "Recomendado // Juntos"
+msgstr "Recommended // Together"
+
+msgid "DISPONIBLE — %(stock)s unidades"
+msgstr "AVAILABLE — %(stock)s units"
+
+msgid "SIN STOCK"
+msgstr "OUT OF STOCK"
+
+msgid "AGREGAR AL CACHE"
+msgstr "ADD TO CACHE"
+
+# ── carrito.html ───────────────────────────────────────────
+msgid "Inventario // Carrito"
+msgstr "Inventory // Cart"
+
+msgid "%(count)s ítem en el carrito"
+msgid_plural "%(count)s ítems en el carrito"
+msgstr[0] "%(count)s item in the cart"
+msgstr[1] "%(count)s items in the cart"
+
+msgid "SEGUIR COMPRANDO"
+msgstr "CONTINUE SHOPPING"
+
+msgid "Buscar productos para agregar (mín. 3 letras)..."
+msgstr "Search products to add (min. 3 chars)..."
+
+msgid "Tu carrito tiene productos de diferentes plataformas: %(plataformas)s. Verifica la compatibilidad antes de comprar."
+msgstr "Your cart has products from different platforms: %(plataformas)s. Check compatibility before purchasing."
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Ordenar por..."
+msgstr "Sort by..."
+
+msgid "¿Vaciar todo el carrito?"
+msgstr "Clear the entire cart?"
+
+msgid "Vaciar carrito"
+msgstr "Clear cart"
+
+msgid "Resumen // Total"
+msgstr "Summary // Total"
+
+msgid "Productos (%(count)s)"
+msgstr "Products (%(count)s)"
+
+msgid "Envío"
+msgstr "Shipping"
+
+msgid "Gratis"
+msgstr "Free"
+
+msgid "PROCEDER AL PAGO"
+msgstr "PROCEED TO CHECKOUT"
+
+msgid "Checkout disponible en Sprint 4"
+msgstr "Checkout available in Sprint 4"
+
+msgid "Aún no has agregado productos a tu carrito."
+msgstr "You haven't added any products to your cart yet."
+
+msgid "EXPLORAR CATÁLOGO"
+msgstr "EXPLORE CATALOG"
+
+msgid "Descubre // Recomendados"
+msgstr "Discover // Recommended"
+
+msgid "TAMBIÉN PODRÍA INTERESARTE"
+msgstr "YOU MIGHT ALSO LIKE"
+
+msgid "Completa tu setup // Accesorios"
+msgstr "Complete your setup // Accessories"
+
+msgid "ACCESORIOS COMPATIBLES"
+msgstr "COMPATIBLE ACCESSORIES"
+
+msgid "AGREGAR"
+msgstr "ADD"
+
+# ── _item.html ─────────────────────────────────────────────
+msgid "El precio cambió: antes S/ %(precio_ant)s → ahora S/ %(precio_nuevo)s"
+msgstr "Price changed: was S/ %(precio_ant)s → now S/ %(precio_nuevo)s"
+
+msgid "Stock disponible: %(stock)s"
+msgstr "Available stock: %(stock)s"
+
+msgid "c/u"
+msgstr "ea."

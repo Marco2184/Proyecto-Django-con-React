@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}ELIMINAR CUENTA — MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);background:var(--black);padding:2.5rem;display:flex;align-items:flex-start;justify-content:center;">
+  <div style="width:100%;max-width:480px;">
+    <div class="section-tag mb-1" style="color:var(--red);">{% trans "Sistema // Peligro" %}</div>
+    <h2 style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.3rem;letter-spacing:3px;margin-bottom:.5rem;color:var(--red);">
+      DELETE ACCOUNT
+    </h2>
+    <p style="color:var(--gray);font-size:.85rem;margin-bottom:2rem;">
+      {% trans "Esta acción es irreversible. Tu cuenta será desactivada y tus datos personales eliminados." %}
+    </p>
+    <div class="panel-monolith" style="border-color:rgba(255,51,51,.3);padding:2rem;">
+      <div class="alert-m-danger mb-4">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>{% trans "ADVERTENCIA:" %}</strong> {% trans "Al confirmar, tu acceso será revocado permanentemente." %}
+      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-4">
+          <label class="form-label-m"><i class="fas fa-lock me-1"></i>{% trans "Confirma tu contraseña" %}</label>
+          <input type="password" name="password" class="form-control" placeholder="{% trans 'Tu contraseña actual' %}" required>
+        </div>
+        <div style="display:flex;gap:1rem;">
+          <button type="submit" class="btn-neon flex-fill" style="justify-content:center;background:linear-gradient(135deg,var(--red),#cc0000);">
+            <i class="fas fa-trash-alt"></i> {% trans "ELIMINAR" %}
+          </button>
+          <a href="{% url 'perfil' %}" class="btn-ghost flex-fill" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">
+            {% trans "CANCELAR" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

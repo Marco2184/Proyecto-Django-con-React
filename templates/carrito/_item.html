@@ -1,0 +1,86 @@
+{% load i18n %}
+<!-- Componente de ítem del carrito -->
+<div class="cart-item d-flex align-items-center gap-3 p-3 mb-2">
+
+  <!-- Miniatura -->
+  <div onclick="ampliarImagen('{{ item.producto.imagen }}')">
+    {% if item.producto.imagen %}
+      <img src="{{ item.producto.imagen }}" class="cart-thumb" alt="{{ item.producto.nombre }}">
+    {% else %}
+      <div class="cart-thumb d-flex align-items-center justify-content-center" style="font-size:2rem;">🎮</div>
+    {% endif %}
+  </div>
+
+  <!-- Info -->
+  <div style="flex:1; min-width:0;">
+    <a href="{% url 'detalle_producto' item.producto.slug %}" target="_blank"
+       style="color:#fff; text-decoration:none; font-weight:700; font-size:.92rem; letter-spacing:.3px;">
+      {{ item.producto.nombre }}
+      <i class="fas fa-external-link-alt" style="font-size:.6rem; color:#555; margin-left:.3rem;"></i>
+    </a>
+
+    <!-- Plataformas + tooltip specs -->
+    <div style="display:flex; align-items:center; gap:.4rem; margin-top:.3rem; flex-wrap:wrap;">
+      {% for plat in item.producto.plataformas.all|slice:":3" %}
+        <span style="font-size:.62rem; background:rgba(0,255,65,.08); border:1px solid rgba(0,255,65,.2); color:var(--neon); padding:.1rem .4rem; border-radius:2px;">{{ plat.nombre }}</span>
+      {% endfor %}
+      {% if item.producto.especificaciones %}
+      <span class="tooltip-spec" style="cursor:help;">
+        <i class="fas fa-circle-info" style="font-size:.7rem; color:#555;"></i>
+        <span class="spec-pop">
+          {% for k, v in item.producto.especificaciones.items %}
+            <div style="display:flex; justify-content:space-between; margin-bottom:.2rem;">
+              <span style="color:#888;">{{ k }}</span><span style="color:var(--neon);">{{ v }}</span>
+            </div>
+          {% endfor %}
+        </span>
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Alerta cambio de precio -->
+    {% if item.precio_cambio %}
+    <div style="font-size:.7rem; color:#f7b731; margin-top:.3rem;">
+      <i class="fas fa-triangle-exclamation me-1"></i>
+      {% blocktrans with precio_ant=item.precio_agregado precio_nuevo=item.producto.precio %}El precio cambió: antes S/ {{ precio_ant }} → ahora S/ {{ precio_nuevo }}{% endblocktrans %}
+    </div>
+    {% endif %}
+
+    <!-- Aviso stock insuficiente -->
+    {% if item.stock_insuficiente %}
+    <div style="font-size:.7rem; color:#ff6666; margin-top:.3rem;">
+      <i class="fas fa-circle-exclamation me-1"></i>{% blocktrans with stock=item.producto.stock %}Stock disponible: {{ stock }}{% endblocktrans %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Cantidad + precio -->
+  <div style="display:flex; align-items:center; gap:.4rem;">
+    <form method="post" action="{% url 'actualizar_cantidad' item.id %}" style="display:inline;">
+      {% csrf_token %}
+      <button name="accion" value="menos" class="qty-btn">−</button>
+    </form>
+    <span style="min-width:32px; text-align:center; font-weight:700; font-family:'Share Tech Mono',monospace;">{{ item.cantidad }}</span>
+    <form method="post" action="{% url 'actualizar_cantidad' item.id %}" style="display:inline;">
+      {% csrf_token %}
+      <button name="accion" value="mas" class="qty-btn"
+              {% if item.cantidad >= item.producto.stock %}disabled style="opacity:.3;cursor:not-allowed;"{% endif %}>+</button>
+    </form>
+  </div>
+
+  <!-- Precio unitario + subtotal -->
+  <div style="text-align:right; min-width:100px;">
+    <div style="font-size:.72rem; color:#555;">S/ {{ item.producto.precio }} {% trans "c/u" %}</div>
+    <div style="font-family:'Orbitron',monospace; font-weight:700; color:var(--neon); font-size:.95rem;">
+      S/ {{ item.subtotal }}
+    </div>
+  </div>
+
+  <!-- Eliminar -->
+  <form method="post" action="{% url 'eliminar_item' item.id %}">
+    {% csrf_token %}
+    <button class="qty-btn" style="border-color:rgba(255,51,51,.3); color:#ff6666;" title="{% trans 'Eliminar' %}">
+      <i class="fas fa-trash" style="font-size:.7rem;"></i>
+    </button>
+  </form>
+</div>

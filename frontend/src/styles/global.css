@@ -1,0 +1,87 @@
+/* NEON MONOLITH Global Styles */
+:root {
+  --black: #000000;
+  --dark: #080808;
+  --panel: #0f0f0f;
+  --panel2: #141414;
+  --border: #1c1c1c;
+  --border2: #252525;
+  --neon: #00ff41;
+  --neon2: #00cc33;
+  --neon-glow: rgba(0, 255, 65, 0.4);
+  --neon-soft: rgba(0, 255, 65, 0.07);
+  --purple: #7b2fff;
+  --white: #ffffff;
+  --gray: #777777;
+  --gray2: #444444;
+  --red: #ff3333;
+  --cyan: #00ccff;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  letter-spacing: 0.3px;
+}
+
+/* Scanlines */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 255, 65, 0.012) 3px,
+    rgba(0, 255, 65, 0.012) 4px
+  );
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon2);
+}
+
+button {
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+input, select, textarea {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Root App */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
