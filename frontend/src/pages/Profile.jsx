@@ -266,26 +266,34 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
         return
       }
 
-      const firebaseUser = requireFirebaseUser()
-      const credential = EmailAuthProvider.credential(
-        firebaseUser.email,
-        deletePassword
-      )
+      if (firebaseReady && firebaseUser) {
+        const credential = EmailAuthProvider.credential(
+          firebaseUser.email,
+          deletePassword
+        )
 
-      await reauthenticateWithCredential(firebaseUser, credential)
+        await reauthenticateWithCredential(firebaseUser, credential)
 
-      const firebaseToken = await firebaseUser.getIdToken(true)
-      await api.post(
-        '/auth/firebase-delete-account/',
-        {},
-        {
-          headers: {
-            Authorization: `Firebase ${firebaseToken}`
+        const firebaseToken = await firebaseUser.getIdToken(true)
+
+        await api.post(
+          '/auth/firebase-delete-account/',
+          {},
+          {
+            headers: {
+              Authorization: `Firebase ${firebaseToken}`
+            }
           }
-        }
-      )
+        )
 
-      await deleteUser(firebaseUser)
+        await deleteUser(firebaseUser)
+      } else {
+        // Fallback para cuentas antiguas creadas antes de migrar a Firebase.
+        // Estas cuentas existen en Django, pero no tienen sesión Firebase activa.
+        await api.post('/auth/delete-account/', {
+          password: deletePassword
+        })
+      }
 
       setAuthToken(null)
       setUser(null)
