@@ -8,7 +8,6 @@ import {
   updatePassword
 } from 'firebase/auth'
 import { api, getApiError, setAuthToken } from '../services/api'
-import { auth } from '../services/firebase'
 import { getTranslatedOrderStatus, getTranslatedText } from '../i18n'
 
 const depas = [
@@ -39,7 +38,7 @@ const depas = [
   'Ucayali'
 ]
 
-export default function Profile({ t, user, setUser, onNavigate }) {
+export default function Profile({ t, user, setUser, onNavigate, firebaseUser, firebaseReady }) {
   const [profile, setProfile] = useState(user || {})
   const [pass, setPass] = useState({
     password_actual: '',
@@ -88,7 +87,9 @@ export default function Profile({ t, user, setUser, onNavigate }) {
   }
 
   const requireFirebaseUser = () => {
-    const firebaseUser = auth.currentUser
+    if (!firebaseReady) {
+      throw new Error(t.firebaseLoading || t.sessionExpiredLoginAgain)
+    }
 
     if (!firebaseUser) {
       throw new Error(t.sessionExpiredLoginAgain)
@@ -306,10 +307,10 @@ export default function Profile({ t, user, setUser, onNavigate }) {
       {!profile.email_verificado && (
         <div className="alert warn">
           {t.emailNotVerified}{' '}
-          <button className="link-neon" onClick={resend} disabled={emailBusy}>
+          <button className="link-neon" onClick={resend} disabled={emailBusy || !firebaseReady}>
             {emailBusy ? t.sending : t.resend}
           </button>{' '}
-          <button className="link-neon" onClick={refreshVerification} disabled={emailBusy}>
+          <button className="link-neon" onClick={refreshVerification} disabled={emailBusy || !firebaseReady}>
             {t.refreshStatus}
           </button>
         </div>

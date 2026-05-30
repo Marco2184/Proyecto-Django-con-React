@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import './styles/global.css'
 import './styles/app.css'
 import Navbar from './components/Navbar'
@@ -12,6 +13,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import { api, bootstrapAuth, setAuthToken } from './services/api'
+import { auth } from './services/firebase'
 import { dict } from './i18n'
 
 function readRoute() {
@@ -28,12 +30,41 @@ function App() {
   const [routeToken] = useState(route.token)
   const [productId, setProductId] = useState(route.productId)
   const [user, setUser] = useState(null)
+  const [firebaseUser, setFirebaseUser] = useState(null)
+  const [firebaseReady, setFirebaseReady] = useState(false)
   const [cartCount, setCartCount] = useState(0)
   const [lang, setLang] = useState(localStorage.getItem('lang') || 'es')
   const t = useMemo(() => dict[lang], [lang])
 
   useEffect(() => {
-    if (bootstrapAuth()) fetchUser()
+    let mounted = true
+
+    const initBackendSession = async () => {
+      const nextUser = await bootstrapAuth()
+
+      if (!mounted) return
+
+      if (nextUser) {
+        setUser(nextUser)
+        fetchCartCount()
+      } else {
+        setUser(null)
+        setCartCount(0)
+      }
+    }
+
+    initBackendSession()
+
+    const unsubscribe = onAuthStateChanged(auth, (nextFirebaseUser) => {
+      if (!mounted) return
+      setFirebaseUser(nextFirebaseUser)
+      setFirebaseReady(true)
+    })
+
+    return () => {
+      mounted = false
+      unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
@@ -49,6 +80,7 @@ function App() {
     } catch {
       setAuthToken(null)
       setUser(null)
+      setCartCount(0)
     }
   }
 
@@ -63,9 +95,16 @@ function App() {
 
   const navigate = (nextPage, payload = {}) => {
     setPage(nextPage)
-    if (payload.productId) setProductId(payload.productId)
-    if (nextPage === 'detail' && payload.productId) window.history.pushState({}, '', `/producto/${payload.productId}`)
-    else if (!['verify', 'reset'].includes(nextPage)) window.history.pushState({}, '', '/')
+
+    if (payload.productId) {
+      setProductId(payload.productId)
+    }
+
+    if (nextPage === 'detail' && payload.productId) {
+      window.history.pushState({}, '', `/producto/${payload.productId}`)
+    } else if (!['verify', 'reset'].includes(nextPage)) {
+      window.history.pushState({}, '', '/')
+    }
   }
 
   const handleAuth = (token, nextUser) => {
@@ -76,9 +115,17 @@ function App() {
   }
 
   const handleLogout = async () => {
-    try { await api.post('/auth/logout/') } catch {}
+    try {
+      await api.post('/auth/logout/')
+    } catch {}
+
+    try {
+      await signOut(auth)
+    } catch {}
+
     setAuthToken(null)
     setUser(null)
+    setFirebaseUser(null)
     setCartCount(0)
     navigate('catalog')
   }
@@ -88,14 +135,55 @@ function App() {
   return (
     <div className="app">
       {!['login', 'register'].includes(page) && (
-        <Navbar user={user} onLogout={handleLogout} cartItems={cartCount} onNavigate={navigate} page={page} lang={lang} toggleLang={toggleLang} t={t} />
+        <Navbar
+          user={user}
+          onLogout={handleLogout}
+          cartItems={cartCount}
+          onNavigate={navigate}
+          page={page}
+          lang={lang}
+          toggleLang={toggleLang}
+          t={t}
+        />
       )}
-      {page === 'catalog' && <Catalog t={t} onNavigate={navigate} user={user} onCartChange={fetchCartCount} />}
-      {page === 'detail' && <ProductDetail t={t} productId={productId} onNavigate={navigate} user={user} onCartChange={fetchCartCount} />}
-      {page === 'cart' && <Cart t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />}
-      {page === 'profile' && <Profile t={t} user={user} setUser={setUser} onNavigate={navigate} />}
-      {page === 'login' && <Login t={t} onNavigate={navigate} onAuth={handleAuth} lang={lang} toggleLang={toggleLang} />}
-      {page === 'register' && <Register t={t} onNavigate={navigate} onAuth={handleAuth} lang={lang} toggleLang={toggleLang} />}
+
+      {page === 'catalog' && (
+        <Catalog t={t} onNavigate={navigate} user={user} onCartChange={fetchCartCount} />
+      )}
+
+      {page === 'detail' && (
+        <ProductDetail
+          t={t}
+          productId={productId}
+          onNavigate={navigate}
+          user={user}
+          onCartChange={fetchCartCount}
+        />
+      )}
+
+      {page === 'cart' && (
+        <Cart t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />
+      )}
+
+      {page === 'profile' && (
+        <Profile
+          t={t}
+          user={user}
+          setUser={setUser}
+          onNavigate={navigate}
+          firebaseUser={firebaseUser}
+          firebaseReady={firebaseReady}
+        />
+      )}
+
+      {page === 'login' && (
+        <Login t={t} onNavigate={navigate} onAuth={handleAuth} lang={lang} toggleLang={toggleLang} />
+      )}
+
+      {page === 'register' && (
+        <Register t={t} onNavigate={navigate} onAuth={handleAuth} lang={lang} toggleLang={toggleLang} />
+      )}
+
       {page === 'verify' && <VerifyEmail t={t} token={routeToken} onNavigate={navigate} />}
       {page === 'forgot' && <ForgotPassword t={t} onNavigate={navigate} />}
       {page === 'reset' && <ResetPassword t={t} token={routeToken} onNavigate={navigate} />}

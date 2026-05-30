@@ -216,6 +216,7 @@ export const dict = {
     userNotFound: 'No existe una cuenta con este correo.',
     tooManyRequests: 'Demasiados intentos. Intenta más tarde.',
     sessionExpiredLoginAgain: 'Tu sesión de Firebase expiró. Cierra sesión e inicia nuevamente.',
+    firebaseLoading: 'Cargando sesión de Firebase. Inténtalo nuevamente en unos segundos.',
     firebaseVerificationInfo: 'La verificación se realiza desde Firebase. Abre el enlace que llegó a tu correo y luego vuelve a iniciar sesión.',
 
     // Categorías/subcategorías dinámicas desde Django
@@ -513,6 +514,7 @@ export const dict = {
     userNotFound: 'No account exists with this email.',
     tooManyRequests: 'Too many attempts. Try again later.',
     sessionExpiredLoginAgain: 'Your Firebase session expired. Log out and sign in again.',
+    firebaseLoading: 'Loading Firebase session. Try again in a few seconds.',
     firebaseVerificationInfo: 'Verification is handled by Firebase. Open the link sent to your email, then sign in again.',
 
     // Dynamic categories/subcategories from Django
