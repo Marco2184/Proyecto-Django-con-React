@@ -42,8 +42,8 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
         nombre: '',
         email: '',
         telefono: '',
-        password: '',
-        password_confirm: ''
+        password1: '',
+        password2: ''
       })
     } catch (err) {
       setError(getApiError(err))
@@ -155,8 +155,8 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
           <label>{t.password}</label>
           <input
             className="input-m"
-            value={form.password}
-            onChange={(event) => handleChange('password', event.target.value)}
+            value={form.password1}
+            onChange={(event) => handleChange('password1', event.target.value)}
             placeholder={t.password}
             type="password"
             required
@@ -165,10 +165,8 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
           <label>{t.confirm}</label>
           <input
             className="input-m"
-            value={form.password_confirm}
-            onChange={(event) =>
-              handleChange('password_confirm', event.target.value)
-            }
+            value={form.password2}
+            onChange={(event) => handleChange('password2', event.target.value)}
             placeholder={t.confirm}
             type="password"
             required
