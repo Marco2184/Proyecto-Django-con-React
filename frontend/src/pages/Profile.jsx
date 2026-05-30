@@ -266,37 +266,52 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
         return
       }
 
-      if (firebaseReady && firebaseUser) {
-        const credential = EmailAuthProvider.credential(
-          firebaseUser.email,
-          deletePassword
-        )
+      if (!deletePassword.trim()) {
+        setError(t.passwordRequiredToDelete || 'Debes ingresar tu contraseña para eliminar la cuenta.')
+        return
+      }
 
-        await reauthenticateWithCredential(firebaseUser, credential)
-
-        const firebaseToken = await firebaseUser.getIdToken(true)
-
-        await api.post(
-          '/auth/firebase-delete-account/',
-          {},
-          {
-            headers: {
-              Authorization: `Firebase ${firebaseToken}`
-            }
-          }
-        )
-
-        await deleteUser(firebaseUser)
-      } else {
-        // Fallback para cuentas antiguas creadas antes de migrar a Firebase.
-        // Estas cuentas existen en Django, pero no tienen sesión Firebase activa.
+      try {
+        /*
+          Primero eliminamos/desactivamos la cuenta en Django.
+          Esto funciona para usuarios antiguos y usuarios Firebase.
+        */
         await api.post('/auth/delete-account/', {
           password: deletePassword
         })
+      } catch (err) {
+        console.error('Delete account API error:', err)
+        throw err
+      }
+
+      /*
+        Luego intentamos eliminar también la cuenta de Firebase.
+        Si falla por sesión expirada, no bloqueamos la eliminación de Django.
+      */
+      if (firebaseReady && firebaseUser) {
+        try {
+          const credential = EmailAuthProvider.credential(
+            firebaseUser.email,
+            deletePassword
+          )
+
+          await reauthenticateWithCredential(firebaseUser, credential)
+          await deleteUser(firebaseUser)
+        } catch (firebaseError) {
+          console.warn('Firebase delete skipped or failed:', firebaseError)
+        }
       }
 
       setAuthToken(null)
       setUser(null)
+
+      try {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      } catch {
+        // No hacer nada
+      }
+
       onNavigate('catalog')
     })
 

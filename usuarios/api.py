@@ -201,16 +201,12 @@ def login_api(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    user.email_verificado = bool(decoded.get("email_verified", False))
-    user.save(update_fields=["email_verificado"])
-
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response({
         "token": token.key,
         "user": _user_payload(user),
     })
-
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -364,29 +360,50 @@ def change_password(request):
         "message": "Contraseña actualizada correctamente.",
     })
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def delete_account(request):
     password = request.data.get("password", "")
     user = request.user
 
-    if not user.check_password(password):
+    if not password:
         return Response(
-            {"detail": "Contraseña incorrecta."},
+            {"detail": "Debes ingresar tu contraseña para eliminar la cuenta."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # Si el usuario tiene contraseña Django usable, la validamos.
+    # Si viene de Firebase, normalmente no tiene contraseña Django usable.
+    if user.has_usable_password() and not user.check_password(password):
+        return Response(
+            {"detail": "Contraseña incorrecta. No se pudo eliminar la cuenta."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    Token.objects.filter(user=user).delete()
 
     user.is_active = False
     user.cuenta_activa = False
     user.nombre = "Usuario eliminado"
     user.email = f"deleted_{user.pk}@monolith.void"
-    user.save()
+    user.telefono = ""
+    user.email_verificado = False
 
-    Token.objects.filter(user=user).delete()
+    user.save(
+        update_fields=[
+            "is_active",
+            "cuenta_activa",
+            "nombre",
+            "email",
+            "telefono",
+            "email_verificado",
+        ]
+    )
 
-    return Response({"message": "Cuenta eliminada del sistema."})
-
+    return Response(
+        {"message": "Cuenta eliminada correctamente."},
+        status=status.HTTP_200_OK,
+    )
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -519,6 +536,32 @@ def firebase_sync_email(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def firebase_delete_account(request):
+    user = request.user
+
+    Token.objects.filter(user=user).delete()
+
+    user.is_active = False
+    user.cuenta_activa = False
+    user.nombre = "Usuario eliminado"
+    user.email = f"deleted_{user.pk}@monolith.void"
+    user.telefono = ""
+    user.email_verificado = False
+
+    user.save(
+        update_fields=[
+            "is_active",
+            "cuenta_activa",
+            "nombre",
+            "email",
+            "telefono",
+            "email_verificado",
+        ]
+    )
+
+    return Response(
+        {"message": "Cuenta eliminada correctamente."},
+        status=status.HTTP_200_OK,
+    )
     decoded = _verify_firebase_token(request)
 
     if not decoded:
