@@ -33,11 +33,11 @@ export default function Login({ t, onNavigate, onAuth, lang, toggleLang }) {
       onAuth(data.token, data.user)
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-        setError('Correo o contraseña incorrectos.')
+        setError(t.invalidLogin)
       } else if (err.code === 'auth/user-not-found') {
-        setError('No existe una cuenta con este correo.')
+        setError(t.userNotFound)
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Demasiados intentos. Intenta más tarde.')
+        setError(t.tooManyRequests)
       } else {
         setError(err.message || getApiError(err))
       }

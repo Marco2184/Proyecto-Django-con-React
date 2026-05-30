@@ -27,7 +27,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
     setLoading(true)
 
     if (form.password1 !== form.password2) {
-      setError('Las contraseñas no coinciden.')
+      setError(t.passwordsDontMatch)
       setLoading(false)
       return
     }
@@ -53,13 +53,13 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
         headers: { Authorization: `Firebase ${token}` }
       })
 
-      setMsg('Cuenta creada. Revisa tu correo para verificarla.')
+      setMsg(t.accountCreatedCheckEmail)
       setForm({ nombre: '', email: '', telefono: '', password1: '', password2: '' })
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
-        setError('Este correo ya está registrado.')
+        setError(t.emailAlreadyInUse)
       } else if (err.code === 'auth/weak-password') {
-        setError('La contraseña debe tener al menos 6 caracteres.')
+        setError(t.weakPassword)
       } else {
         setError(err.message || getApiError(err))
       }

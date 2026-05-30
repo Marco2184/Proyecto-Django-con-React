@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
+import {
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  reload,
+  sendEmailVerification,
+  updatePassword
+} from 'firebase/auth'
 import { api, getApiError, setAuthToken } from '../services/api'
+import { auth } from '../services/firebase'
 import { getTranslatedOrderStatus, getTranslatedText } from '../i18n'
 
 const depas = [
@@ -54,6 +63,7 @@ export default function Profile({ t, user, setUser, onNavigate }) {
   const [deletePassword, setDeletePassword] = useState('')
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
+  const [emailBusy, setEmailBusy] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -61,6 +71,7 @@ export default function Profile({ t, user, setUser, onNavigate }) {
       return
     }
 
+    setProfile(user)
     loadAddresses()
     loadOrders()
   }, [user])
@@ -72,8 +83,38 @@ export default function Profile({ t, user, setUser, onNavigate }) {
     try {
       await fn()
     } catch (err) {
-      setError(getApiError(err))
+      setError(getTranslatedText(t, getApiError(err) || err.message))
     }
+  }
+
+  const requireFirebaseUser = () => {
+    const firebaseUser = auth.currentUser
+
+    if (!firebaseUser) {
+      throw new Error(t.sessionExpiredLoginAgain)
+    }
+
+    return firebaseUser
+  }
+
+  const syncFirebaseEmailStatus = async (firebaseUser) => {
+    await reload(firebaseUser)
+
+    const firebaseToken = await firebaseUser.getIdToken(true)
+
+    const { data } = await api.post(
+      '/auth/firebase-sync-email/',
+      {},
+      {
+        headers: {
+          Authorization: `Firebase ${firebaseToken}`
+        }
+      }
+    )
+
+    setProfile(data.user)
+    setUser(data.user)
+    return data.user
   }
 
   const loadAddresses = () =>
@@ -105,22 +146,56 @@ export default function Profile({ t, user, setUser, onNavigate }) {
 
   const resend = () =>
     safe(async () => {
-      const { data } = await api.post('/auth/resend-verification/')
-      setMsg(getTranslatedText(t, data.message))
+      setEmailBusy(true)
+
+      try {
+        const firebaseUser = requireFirebaseUser()
+        await reload(firebaseUser)
+
+        if (firebaseUser.emailVerified) {
+          const updatedUser = await syncFirebaseEmailStatus(firebaseUser)
+          setMsg(updatedUser.email_verificado ? t.emailAlreadyVerified : t.emailStatusRefreshed)
+          return
+        }
+
+        await sendEmailVerification(firebaseUser)
+        setMsg(t.verificationEmailSent)
+      } finally {
+        setEmailBusy(false)
+      }
+    })
+
+  const refreshVerification = () =>
+    safe(async () => {
+      setEmailBusy(true)
+
+      try {
+        const firebaseUser = requireFirebaseUser()
+        const updatedUser = await syncFirebaseEmailStatus(firebaseUser)
+        setMsg(updatedUser.email_verificado ? t.emailVerifiedNow : t.emailStillPending)
+      } finally {
+        setEmailBusy(false)
+      }
     })
 
   const changePassword = (event) =>
     safe(async () => {
       event.preventDefault()
 
-      const { data } = await api.post('/auth/change-password/', pass)
+      const firebaseUser = requireFirebaseUser()
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        pass.password_actual
+      )
 
-      setAuthToken(data.token)
+      await reauthenticateWithCredential(firebaseUser, credential)
+      await updatePassword(firebaseUser, pass.password_nueva)
+
       setPass({
         password_actual: '',
         password_nueva: ''
       })
-      setMsg(getTranslatedText(t, data.message))
+      setMsg(t.passwordUpdated)
     })
 
   const addAddress = (event) =>
@@ -190,9 +265,26 @@ export default function Profile({ t, user, setUser, onNavigate }) {
         return
       }
 
-      await api.post('/auth/delete-account/', {
-        password: deletePassword
-      })
+      const firebaseUser = requireFirebaseUser()
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        deletePassword
+      )
+
+      await reauthenticateWithCredential(firebaseUser, credential)
+
+      const firebaseToken = await firebaseUser.getIdToken(true)
+      await api.post(
+        '/auth/firebase-delete-account/',
+        {},
+        {
+          headers: {
+            Authorization: `Firebase ${firebaseToken}`
+          }
+        }
+      )
+
+      await deleteUser(firebaseUser)
 
       setAuthToken(null)
       setUser(null)
@@ -214,8 +306,11 @@ export default function Profile({ t, user, setUser, onNavigate }) {
       {!profile.email_verificado && (
         <div className="alert warn">
           {t.emailNotVerified}{' '}
-          <button className="link-neon" onClick={resend}>
-            {t.resend}
+          <button className="link-neon" onClick={resend} disabled={emailBusy}>
+            {emailBusy ? t.sending : t.resend}
+          </button>{' '}
+          <button className="link-neon" onClick={refreshVerification} disabled={emailBusy}>
+            {t.refreshStatus}
           </button>
         </div>
       )}
@@ -303,6 +398,7 @@ export default function Profile({ t, user, setUser, onNavigate }) {
                   password_actual: event.target.value
                 })
               }
+              required
             />
 
             <label>{t.newPassword}</label>
@@ -316,6 +412,8 @@ export default function Profile({ t, user, setUser, onNavigate }) {
                   password_nueva: event.target.value
                 })
               }
+              required
+              minLength={6}
             />
 
             <button className="btn-outline-neon">{t.updatePassword}</button>

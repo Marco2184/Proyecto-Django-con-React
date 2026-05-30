@@ -35,6 +35,8 @@ urlpatterns = [
     path('api/auth/register/', usuarios_api.register),
     path('api/auth/firebase-register/', usuarios_api.firebase_register), 
     path('api/auth/firebase-login/', usuarios_api.firebase_login), 
+    path('api/auth/firebase-sync-email/', usuarios_api.firebase_sync_email),
+    path('api/auth/firebase-delete-account/', usuarios_api.firebase_delete_account),
     path('api/auth/login/', usuarios_api.login_api),
     path('api/auth/logout/', usuarios_api.logout_api),
     path('api/auth/me/', usuarios_api.me),

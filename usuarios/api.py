@@ -201,6 +201,9 @@ def login_api(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    user.email_verificado = bool(decoded.get("email_verified", False))
+    user.save(update_fields=["email_verificado"])
+
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response({
@@ -486,6 +489,65 @@ def _verify_firebase_token(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def firebase_sync_email(request):
+    decoded = _verify_firebase_token(request)
+
+    if not decoded:
+        return Response(
+            {"detail": "Token Firebase inválido."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    email = decoded.get("email")
+
+    if not email or email.lower() != request.user.email.lower():
+        return Response(
+            {"detail": "El token Firebase no corresponde al usuario autenticado."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    request.user.email_verificado = bool(decoded.get("email_verified", False))
+    request.user.save(update_fields=["email_verificado"])
+
+    return Response({
+        "user": _user_payload(request.user),
+        "email_verificado": request.user.email_verificado,
+    })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def firebase_delete_account(request):
+    decoded = _verify_firebase_token(request)
+
+    if not decoded:
+        return Response(
+            {"detail": "Token Firebase inválido."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    email = decoded.get("email")
+
+    if not email or email.lower() != request.user.email.lower():
+        return Response(
+            {"detail": "El token Firebase no corresponde al usuario autenticado."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    user = request.user
+    user.is_active = False
+    user.cuenta_activa = False
+    user.nombre = "Usuario eliminado"
+    user.email = f"deleted_{user.pk}@monolith.void"
+    user.save()
+
+    Token.objects.filter(user=user).delete()
+
+    return Response({"message": "Cuenta eliminada del sistema."})
+
+
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def firebase_register(request):
     decoded = _verify_firebase_token(request)
@@ -523,8 +585,11 @@ def firebase_register(request):
             nombre=nombre,
             telefono=telefono,
         )
-        user.email_verificado = True
+        user.email_verificado = bool(decoded.get("email_verified", False))
         user.save(update_fields=["email_verificado"])
+
+    user.email_verificado = bool(decoded.get("email_verified", False))
+    user.save(update_fields=["email_verificado"])
 
     token, _ = Token.objects.get_or_create(user=user)
 
@@ -567,6 +632,9 @@ def firebase_login(request):
             {"detail": "Cuenta inactiva."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    user.email_verificado = bool(decoded.get("email_verified", False))
+    user.save(update_fields=["email_verificado"])
 
     token, _ = Token.objects.get_or_create(user=user)
 

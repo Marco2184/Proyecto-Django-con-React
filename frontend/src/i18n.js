@@ -111,7 +111,7 @@ export const dict = {
     // Autenticación - registro
     registerTag: 'Autenticación // Registro',
     registerHeroTitle: 'Crea tu arsenal',
-    registerHeroSubtitle: 'Registro con verificación de correo usando Django.',
+    registerHeroSubtitle: 'Registro con verificación de correo usando Firebase.',
     registerModule: 'Módulo de registro',
     smtpReady: 'SMTP listo',
     name: 'Nombre completo',
@@ -194,6 +194,29 @@ export const dict = {
     deleteAccountConfirm: '¿Seguro que quieres eliminar tu cuenta?',
     deletePasswordPlaceholder: 'Contraseña para confirmar',
     deleteForever: 'Eliminar definitivamente',
+
+
+    // Notificaciones / Firebase
+    sending: 'Enviando...',
+    updating: 'Actualizando...',
+    refreshStatus: 'Actualizar estado',
+    verificationEmailSent: 'Nuevo enlace de verificación enviado. Revisa tu correo.',
+    emailAlreadyVerified: 'Tu correo ya está verificado.',
+    emailVerifiedNow: 'Correo verificado correctamente.',
+    emailStillPending: 'Tu correo aún aparece como pendiente. Abre el enlace de Firebase y vuelve a actualizar.',
+    emailStatusRefreshed: 'Estado de correo actualizado.',
+    passwordUpdated: 'Contraseña actualizada correctamente.',
+    passwordResetEmailSent: 'Si el correo está registrado en Firebase, recibirás un enlace para restablecer tu contraseña.',
+    passwordResetDone: 'Contraseña restablecida correctamente. Ya puedes iniciar sesión.',
+    accountCreatedCheckEmail: 'Cuenta creada. Revisa tu correo para verificarla.',
+    passwordsDontMatch: 'Las contraseñas no coinciden.',
+    emailAlreadyInUse: 'Este correo ya está registrado.',
+    weakPassword: 'La contraseña debe tener al menos 6 caracteres.',
+    invalidLogin: 'Correo o contraseña incorrectos.',
+    userNotFound: 'No existe una cuenta con este correo.',
+    tooManyRequests: 'Demasiados intentos. Intenta más tarde.',
+    sessionExpiredLoginAgain: 'Tu sesión de Firebase expiró. Cierra sesión e inicia nuevamente.',
+    firebaseVerificationInfo: 'La verificación se realiza desde Firebase. Abre el enlace que llegó a tu correo y luego vuelve a iniciar sesión.',
 
     // Categorías/subcategorías dinámicas desde Django
     categoryLabels: {
@@ -385,7 +408,7 @@ export const dict = {
     // Auth - register
     registerTag: 'Authentication // Register',
     registerHeroTitle: 'Create your arsenal',
-    registerHeroSubtitle: 'Registration with email verification using Django.',
+    registerHeroSubtitle: 'Registration with email verification using Firebase.',
     registerModule: 'Register module',
     smtpReady: 'SMTP ready',
     name: 'Full name',
@@ -468,6 +491,29 @@ export const dict = {
     deleteAccountConfirm: 'Are you sure you want to delete your account?',
     deletePasswordPlaceholder: 'Password to confirm',
     deleteForever: 'Delete permanently',
+
+
+    // Notifications / Firebase
+    sending: 'Sending...',
+    updating: 'Updating...',
+    refreshStatus: 'Refresh status',
+    verificationEmailSent: 'New verification link sent. Check your inbox.',
+    emailAlreadyVerified: 'Your email is already verified.',
+    emailVerifiedNow: 'Email verified successfully.',
+    emailStillPending: 'Your email is still pending. Open the Firebase link and refresh again.',
+    emailStatusRefreshed: 'Email status refreshed.',
+    passwordUpdated: 'Password updated successfully.',
+    passwordResetEmailSent: 'If the email is registered in Firebase, you will receive a password reset link.',
+    passwordResetDone: 'Password reset successfully. You can now sign in.',
+    accountCreatedCheckEmail: 'Account created. Check your email to verify it.',
+    passwordsDontMatch: 'Passwords do not match.',
+    emailAlreadyInUse: 'This email is already registered.',
+    weakPassword: 'The password must have at least 6 characters.',
+    invalidLogin: 'Incorrect email or password.',
+    userNotFound: 'No account exists with this email.',
+    tooManyRequests: 'Too many attempts. Try again later.',
+    sessionExpiredLoginAgain: 'Your Firebase session expired. Log out and sign in again.',
+    firebaseVerificationInfo: 'Verification is handled by Firebase. Open the link sent to your email, then sign in again.',
 
     // Dynamic categories/subcategories from Django
     categoryLabels: {
@@ -624,7 +670,26 @@ export function getTranslatedText(t, text) {
     direccion_eliminada: t.addressDeleted,
     producto_agregado_al_carrito: t.addedToCart,
     sin_descripcion: t.noDescription,
-    sin_pedidos: t.noOrders
+    sin_pedidos: t.noOrders,
+    nuevo_enlace_enviado_a_marco_figueroa_tecsup_edu_pe: t.verificationEmailSent,
+    nuevo_enlace_enviado_a: t.verificationEmailSent,
+    cuenta_creada_revisa_tu_correo_para_verificarla: t.accountCreatedCheckEmail,
+    auth_email_already_in_use: t.emailAlreadyInUse,
+    email_already_in_use: t.emailAlreadyInUse,
+    auth_weak_password: t.weakPassword,
+    weak_password: t.weakPassword,
+    auth_invalid_credential: t.invalidLogin,
+    invalid_credential: t.invalidLogin,
+    auth_wrong_password: t.invalidLogin,
+    wrong_password: t.invalidLogin,
+    auth_user_not_found: t.userNotFound,
+    user_not_found: t.userNotFound,
+    auth_too_many_requests: t.tooManyRequests,
+    too_many_requests: t.tooManyRequests,
+    auth_requires_recent_login: t.sessionExpiredLoginAgain,
+    requires_recent_login: t.sessionExpiredLoginAgain,
+    auth_network_request_failed: 'Error de red. Revisa tu conexión.',
+    network_request_failed: 'Error de red. Revisa tu conexión.'
   }
 
   return map[key] || text
