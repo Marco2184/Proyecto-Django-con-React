@@ -56,6 +56,7 @@ urlpatterns = [
     path('api/cart/add/', carrito_api.cart_add),
     path('api/cart/items/<int:item_id>/', carrito_api.cart_item),
     path('api/cart/clear/', carrito_api.cart_clear),
+    path('api/cart/checkout/', carrito_api.cart_checkout),
 
     # Rutas antiguas conservadas como backend legacy/template, sin borrar tu Django previo.
     path('', include('usuarios.urls')),

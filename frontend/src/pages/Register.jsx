@@ -13,7 +13,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
   })
 
   const [error, setError] = useState('')
-  const [msg, setMsg] = useState('')
+  const [msgKey, setMsgKey] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (field, value) => {
@@ -23,7 +23,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
   const submit = async (event) => {
     event.preventDefault()
     setError('')
-    setMsg('')
+    setMsgKey('')
     setLoading(true)
 
     if (form.password1 !== form.password2) {
@@ -53,7 +53,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
         headers: { Authorization: `Firebase ${token}` }
       })
 
-      setMsg(t.accountCreatedCheckEmail)
+      setMsgKey('accountCreatedCheckEmail')
       setForm({ nombre: '', email: '', telefono: '', password1: '', password2: '' })
     } catch (err) {
       if (err.code === 'auth/email-already-in-use') {
@@ -97,7 +97,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
         <h2>{t.register}</h2>
         <p className="muted">{t.registerHeroSubtitle}</p>
 
-        {msg && <div className="alert success">{msg}</div>}
+        {msgKey && <div className="alert success">{t[msgKey]}</div>}
         {error && <div className="alert error">{error}</div>}
 
         <form onSubmit={submit} className="form-stack">

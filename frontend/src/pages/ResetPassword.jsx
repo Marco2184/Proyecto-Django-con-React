@@ -5,13 +5,13 @@ import { getTranslatedText } from '../i18n'
 
 export default function ResetPassword({ t, token, onNavigate }) {
   const [form, setForm] = useState({ password1: '', password2: '' })
-  const [msg, setMsg] = useState('')
+  const [msgKey, setMsgKey] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const submit = async (event) => {
     event.preventDefault()
-    setMsg('')
+    setMsgKey('')
     setError('')
 
     if (form.password1 !== form.password2) {
@@ -23,7 +23,7 @@ export default function ResetPassword({ t, token, onNavigate }) {
 
     try {
       await confirmPasswordReset(auth, token, form.password1)
-      setMsg(t.passwordResetDone)
+      setMsgKey('passwordResetDone')
     } catch (err) {
       setError(getTranslatedText(t, err.code || err.message))
     } finally {
@@ -36,7 +36,7 @@ export default function ResetPassword({ t, token, onNavigate }) {
       <div className="section-tag">{t.resetTag}</div>
       <h1>{t.resetTitle}</h1>
 
-      {msg && <div className="alert success">{msg}</div>}
+      {msgKey && <div className="alert success">{t[msgKey]}</div>}
       {error && <div className="alert error">{error}</div>}
 
       <form className="form-stack" onSubmit={submit}>

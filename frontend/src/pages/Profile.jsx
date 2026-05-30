@@ -60,7 +60,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
     fecha_hasta: ''
   })
   const [deletePassword, setDeletePassword] = useState('')
-  const [msg, setMsg] = useState('')
+  const [msgKey, setMsgKey] = useState('')
   const [error, setError] = useState('')
   const [emailBusy, setEmailBusy] = useState(false)
 
@@ -76,7 +76,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
   }, [user])
 
   const safe = async (fn) => {
-    setMsg('')
+    setMsgKey('')
     setError('')
 
     try {
@@ -142,7 +142,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
 
       setProfile(data)
       setUser(data)
-      setMsg(t.profileUpdated)
+      setMsgKey('profileUpdated')
     })
 
   const resend = () =>
@@ -155,12 +155,12 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
 
         if (firebaseUser.emailVerified) {
           const updatedUser = await syncFirebaseEmailStatus(firebaseUser)
-          setMsg(updatedUser.email_verificado ? t.emailAlreadyVerified : t.emailStatusRefreshed)
+          setMsgKey(updatedUser.email_verificado ? 'emailAlreadyVerified' : 'emailStatusRefreshed')
           return
         }
 
         await sendEmailVerification(firebaseUser)
-        setMsg(t.verificationEmailSent)
+        setMsgKey('verificationEmailSent')
       } finally {
         setEmailBusy(false)
       }
@@ -173,7 +173,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
       try {
         const firebaseUser = requireFirebaseUser()
         const updatedUser = await syncFirebaseEmailStatus(firebaseUser)
-        setMsg(updatedUser.email_verificado ? t.emailVerifiedNow : t.emailStillPending)
+        setMsgKey(updatedUser.email_verificado ? 'emailVerifiedNow' : 'emailStillPending')
       } finally {
         setEmailBusy(false)
       }
@@ -196,7 +196,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
         password_actual: '',
         password_nueva: ''
       })
-      setMsg(t.passwordUpdated)
+      setMsgKey('passwordUpdated')
     })
 
   const addAddress = (event) =>
@@ -205,10 +205,10 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
 
       if (editingAddressId) {
         await api.patch(`/profile/addresses/${editingAddressId}/`, addr)
-        setMsg(t.addressUpdated)
+        setMsgKey('addressUpdated')
       } else {
         await api.post('/profile/addresses/', addr)
-        setMsg(t.addressAdded)
+        setMsgKey('addressAdded')
       }
 
       setEditingAddressId(null)
@@ -249,7 +249,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
     safe(async () => {
       await api.delete(`/profile/addresses/${id}/`)
       await loadAddresses()
-      setMsg(t.addressDeleted)
+      setMsgKey('addressDeleted')
     })
 
   const applyFilters = (event) =>
@@ -309,7 +309,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
       <div className="section-tag">{t.accountTag}</div>
       <h1>{t.profileTitle}</h1>
 
-      {msg && <div className="alert success">{msg}</div>}
+      {msgKey && <div className="alert success">{t[msgKey]}</div>}
       {error && <div className="alert error">{error}</div>}
 
       {!profile.email_verificado && (

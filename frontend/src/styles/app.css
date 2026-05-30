@@ -787,3 +787,18 @@
     width: 64px !important; height: 64px !important; min-width: 64px !important; max-width: 64px !important; min-height: 64px !important; max-height: 64px !important;
   }
 }
+
+/* ── Sprint 3 cart controls and checkout polish ───────────── */
+.cart-toolbar-full {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr);
+  gap: .8rem;
+  align-items: center;
+  margin: 1rem 0 1.2rem;
+}
+.empty-state.small { padding: 1rem; border: 1px solid var(--border2); background: #060606; margin: 1rem 0; }
+.cart-item .qty button:disabled { opacity: .35; cursor: not-allowed; }
+@media (max-width: 900px) {
+  .cart-toolbar-full { grid-template-columns: 1fr; }
+  .cart-search-row, .cart-toolbar { grid-template-columns: 1fr; }
+}

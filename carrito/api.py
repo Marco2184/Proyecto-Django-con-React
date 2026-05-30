@@ -1,8 +1,10 @@
+from django.db import transaction
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from productos.models import Producto, Categoria
+from usuarios.models import Pedido
 from productos.serializers import ProductoListSerializer
 from productos.api import exclude_adult_content
 from .models import Carrito, ItemCarrito
@@ -63,7 +65,7 @@ def _compatibilidad(items):
     return {'ok': ok, 'mensaje': mensaje, 'plataformas_comunes': comunes, 'detalle': detalle}
 
 
-def _cart_payload(carrito, mensajes=None):
+def _cart_payload(carrito, mensajes=None, request=None):
     items = list(carrito.items)
     categorias_ids = [i.producto.categoria_id for i in items if i.producto.categoria_id]
     productos_ids = [i.producto_id for i in items]
@@ -77,15 +79,15 @@ def _cart_payload(carrito, mensajes=None):
         for plataforma in item.producto.plataformas.all():
             plataformas.add(plataforma.nombre)
     return {
-        'items': CartItemSerializer(items, many=True).data,
+        'items': CartItemSerializer(items, many=True, context={'request': request}).data,
         'total': str(carrito.total),
         'cantidad_items': carrito.cantidad_items,
         'vacio': carrito.vacio,
         'plataformas_mezcladas': len(plataformas) > 1,
         'plataformas_carrito': sorted(plataformas),
         'compatibilidad': _compatibilidad(items),
-        'recomendados': ProductoListSerializer(recomendados, many=True).data,
-        'accesorios': ProductoListSerializer(accesorios, many=True).data,
+        'recomendados': ProductoListSerializer(recomendados, many=True, context={'request': request}).data,
+        'accesorios': ProductoListSerializer(accesorios, many=True, context={'request': request}).data,
         'mensajes': mensajes or [],
     }
 
@@ -95,7 +97,7 @@ def _cart_payload(carrito, mensajes=None):
 def cart_detail(request):
     carrito = _get_carrito(request.user)
     mensajes = _normalize_carrito(carrito)
-    return Response(_cart_payload(carrito, mensajes))
+    return Response(_cart_payload(carrito, mensajes, request))
 
 
 @api_view(['POST'])
@@ -118,7 +120,7 @@ def cart_add(request):
     nueva_cantidad = item.cantidad + max(cantidad, 1)
     item.cantidad = min(nueva_cantidad, producto.stock)
     item.save()
-    return Response(_cart_payload(carrito))
+    return Response(_cart_payload(carrito, request=request))
 
 
 @api_view(['PATCH', 'DELETE'])
@@ -131,7 +133,7 @@ def cart_item(request, item_id):
         return Response({'detail': 'Ítem no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
     if request.method == 'DELETE':
         item.delete()
-        return Response(_cart_payload(carrito))
+        return Response(_cart_payload(carrito, request=request))
     accion = request.data.get('accion')
     cantidad = request.data.get('cantidad')
     if accion == 'mas':
@@ -144,7 +146,7 @@ def cart_item(request, item_id):
         item.delete()
     else:
         item.save(update_fields=['cantidad'])
-    return Response(_cart_payload(carrito))
+    return Response(_cart_payload(carrito, request=request))
 
 
 @api_view(['POST'])
@@ -152,4 +154,68 @@ def cart_item(request, item_id):
 def cart_clear(request):
     carrito = _get_carrito(request.user)
     carrito.itemcarrito_set.all().delete()
-    return Response(_cart_payload(carrito))
+    return Response(_cart_payload(carrito, request=request))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cart_checkout(request):
+    carrito = _get_carrito(request.user)
+    mensajes = _normalize_carrito(carrito)
+
+    with transaction.atomic():
+        items = list(
+            carrito.itemcarrito_set
+            .select_for_update()
+            .select_related('producto', 'producto__categoria')
+            .prefetch_related('producto__plataformas')
+        )
+
+        if not items:
+            return Response({'detail': 'El carrito está vacío.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Bloqueo de filas de producto para evitar confirmar más unidades de las disponibles.
+        productos = {
+            p.id: p
+            for p in Producto.objects.select_for_update().filter(
+                id__in=[item.producto_id for item in items]
+            )
+        }
+
+        insuficientes = []
+        for item in items:
+            producto = productos[item.producto_id]
+            if producto.stock < item.cantidad or producto.stock <= 0:
+                insuficientes.append(producto.nombre)
+
+        if insuficientes:
+            nombres = ', '.join(insuficientes)
+            return Response(
+                {'detail': f'No hay stock suficiente para completar el pedido: {nombres}.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pedido = Pedido.objects.create(
+            usuario=request.user,
+            monto_total=carrito.total,
+            estado='pendiente',
+        )
+
+        for item in items:
+            producto = productos[item.producto_id]
+            producto.stock = max(producto.stock - item.cantidad, 0)
+            producto.ventas = (producto.ventas or 0) + item.cantidad
+            producto.save(update_fields=['stock', 'ventas'])
+
+        carrito.itemcarrito_set.all().delete()
+
+    return Response({
+        'message': 'Pedido creado correctamente.',
+        'pedido': {
+            'id': pedido.id,
+            'numero': pedido.numero,
+            'estado': pedido.estado,
+            'monto_total': str(pedido.monto_total),
+        },
+        'carrito': _cart_payload(carrito, mensajes, request),
+    }, status=status.HTTP_201_CREATED)
