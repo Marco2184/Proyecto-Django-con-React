@@ -6,8 +6,8 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
     nombre: '',
     email: '',
     telefono: '',
-    password: '',
-    password_confirm: ''
+    password1: '',
+    password2: ''
   })
 
   const [error, setError] = useState('')
