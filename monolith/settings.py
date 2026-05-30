@@ -174,6 +174,8 @@ LOGOUT_REDIRECT_URL = '/login/'
 # Soporta dos formatos:
 # 1. EMAIL_HOST_USER / EMAIL_HOST_PASSWORD
 # 2. MONOLITH_EMAIL / MONOLITH_PASSWORD
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
@@ -195,16 +197,4 @@ DEFAULT_FROM_EMAIL = config(
     default=f'Monolith <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'Monolith <noreply@monolith.local>'
 )
 
-if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
-
-RAWG_API_KEY = config('RAWG_API_KEY', default='')
-
-if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
