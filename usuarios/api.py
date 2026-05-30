@@ -1,3 +1,17 @@
+import uuid
+import threading
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.core.mail import send_mail
+from django.utils.translation import activate
+from rest_framework import serializers, status
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from decouple import config
+from .models import Usuario, DireccionEnvio, Pedido
+
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
