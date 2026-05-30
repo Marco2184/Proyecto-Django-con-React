@@ -1,37 +1,194 @@
 import { useState } from 'react'
 import { api, getApiError } from '../services/api'
 
-export default function Register({ t, onNavigate, onAuth, lang, toggleLang }) {
-  const [form, setForm] = useState({ nombre: '', email: '', telefono: '', password1: '', password2: '' })
+export default function Register({ t, onNavigate, lang, toggleLang }) {
+  const [form, setForm] = useState({
+    nombre: '',
+    email: '',
+    telefono: '',
+    password: '',
+    password_confirm: ''
+  })
+
   const [error, setError] = useState('')
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const submit = async (e) => {
-    e.preventDefault(); setError(''); setMsg(''); setLoading(true)
+  const handleChange = (field, value) => {
+    setForm({
+      ...form,
+      [field]: value
+    })
+  }
+
+  const submit = async (event) => {
+    event.preventDefault()
+
+    setError('')
+    setMsg('')
+    setLoading(true)
+
     try {
       const { data } = await api.post('/auth/register/', form)
-      setMsg(data.message)
-      onAuth(data.token, data.user)
-    } catch (err) { setError(getApiError(err)) }
-    finally { setLoading(false) }
+
+      setMsg(
+        data.message ||
+          data.detail ||
+          t.verifyMail ||
+          'Cuenta creada. Revisa tu correo para verificarla.'
+      )
+
+      setForm({
+        nombre: '',
+        email: '',
+        telefono: '',
+        password: '',
+        password_confirm: ''
+      })
+    } catch (err) {
+      setError(getApiError(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="auth-split">
-      <section className="auth-hero"><div className="mono-line">// MONOLITH //</div><h1>CREATE<br/><span>YOUR<br/>ARSENAL</span></h1><div className="hero-sep"/><p>Registro con verificación de correo usando Django.</p><div className="terminal-box">&gt; REGISTER MODULE<br/>&gt; SMTP READY<br/>&gt; _</div><div className="lang-switch"><button className={lang === 'es' ? 'active' : ''} onClick={toggleLang}>ES</button><button className={lang === 'en' ? 'active' : ''} onClick={toggleLang}>EN</button></div></section>
+      <section className="auth-hero">
+        <div className="mono-line">// {t.appName} //</div>
+
+        <h1>
+          {lang === 'es' ? (
+            <>
+              CREA
+              <br />
+              TU
+              <br />
+              <span>
+                ARSENAL
+                <br />
+                GAMER
+              </span>
+            </>
+          ) : (
+            <>
+              CREATE
+              <br />
+              YOUR
+              <br />
+              <span>
+                GAMING
+                <br />
+                ARSENAL
+              </span>
+            </>
+          )}
+        </h1>
+
+        <div className="hero-sep" />
+
+        <p>{t.registerHeroSubtitle}</p>
+
+        <div className="terminal-box">
+          &gt; {t.registerModule}
+          <br />
+          &gt; {t.smtpReady}
+          <br />
+          &gt; _
+        </div>
+
+        <div className="lang-switch">
+          <button
+            className={lang === 'es' ? 'active' : ''}
+            onClick={toggleLang}
+            type="button"
+          >
+            ES
+          </button>
+
+          <button
+            className={lang === 'en' ? 'active' : ''}
+            onClick={toggleLang}
+            type="button"
+          >
+            EN
+          </button>
+        </div>
+      </section>
+
       <section className="auth-panel">
-        <div className="section-tag">Autenticación // Registro</div><h2>{t.register.toUpperCase()}</h2>
-        {error && <div className="alert error">{error}</div>}{msg && <div className="alert success">{msg}</div>}
+        <div className="section-tag">{t.registerTag}</div>
+        <h2>{t.register}</h2>
+        <p className="muted">{t.registerHeroSubtitle}</p>
+
+        {msg && <div className="alert success">{msg}</div>}
+        {error && <div className="alert error">{error}</div>}
+
         <form onSubmit={submit} className="form-stack">
-          <label>{t.name}</label><input className="input-m" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} required />
-          <label>{t.email}</label><input className="input-m" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
-          <label>{t.phone}</label><input className="input-m" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} />
-          <label>{t.password}</label><input className="input-m" type="password" value={form.password1} onChange={e => setForm({ ...form, password1: e.target.value })} required />
-          <label>{t.confirm}</label><input className="input-m" type="password" value={form.password2} onChange={e => setForm({ ...form, password2: e.target.value })} required />
-          <button className="btn-neon w-100" disabled={loading}>{loading ? '...' : t.create}</button>
+          <label>{t.name}</label>
+          <input
+            className="input-m"
+            value={form.nombre}
+            onChange={(event) => handleChange('nombre', event.target.value)}
+            placeholder={t.name}
+            required
+          />
+
+          <label>{t.email}</label>
+          <input
+            className="input-m"
+            value={form.email}
+            onChange={(event) => handleChange('email', event.target.value)}
+            placeholder="correo@ejemplo.com"
+            type="email"
+            required
+          />
+
+          <label>{t.phone}</label>
+          <input
+            className="input-m"
+            value={form.telefono}
+            onChange={(event) => handleChange('telefono', event.target.value)}
+            placeholder={t.phone}
+          />
+
+          <label>{t.password}</label>
+          <input
+            className="input-m"
+            value={form.password}
+            onChange={(event) => handleChange('password', event.target.value)}
+            placeholder={t.password}
+            type="password"
+            required
+          />
+
+          <label>{t.confirm}</label>
+          <input
+            className="input-m"
+            value={form.password_confirm}
+            onChange={(event) =>
+              handleChange('password_confirm', event.target.value)
+            }
+            placeholder={t.confirm}
+            type="password"
+            required
+          />
+
+          <button className="btn-neon w-100" disabled={loading}>
+            {loading ? '...' : t.create}
+          </button>
         </form>
-        <div className="auth-foot">{t.haveAccount} <button className="link-neon" onClick={() => onNavigate('login')}>{t.login}</button></div>
+
+        <div className="auth-foot">
+          {t.haveAccount}{' '}
+          <button
+            className="link-neon"
+            onClick={() => onNavigate('login')}
+            type="button"
+          >
+            {t.login}
+          </button>
+        </div>
       </section>
     </div>
   )

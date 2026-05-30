@@ -60,8 +60,9 @@ export default function Catalog({ t, onNavigate, user, onCartChange }) {
 
         setSuggestions(data.resultados || [])
         setSuggestOpen(true)
-      } catch {
+      } catch (err) {
         setSuggestions([])
+        console.error(getApiError(err))
       } finally {
         setSuggestLoading(false)
       }
@@ -94,8 +95,8 @@ export default function Catalog({ t, onNavigate, user, onCartChange }) {
 
       setPlataformas(platformResponse.data.results || platformResponse.data)
       setCategorias(categoryResponse.data.results || categoryResponse.data)
-    } catch (error) {
-      console.error(error)
+    } catch (err) {
+      console.error(getApiError(err))
     }
   }
 
@@ -325,9 +326,7 @@ export default function Catalog({ t, onNavigate, user, onCartChange }) {
                 <div className="steam-suggest">
                   <div className="suggest-title">{t.suggestionsTitle}</div>
 
-                  {suggestLoading && (
-                    <div className="suggest-empty">...</div>
-                  )}
+                  {suggestLoading && <div className="suggest-empty">...</div>}
 
                   {!suggestLoading && suggestions.length === 0 && (
                     <div className="suggest-empty">{t.noSuggestions}</div>
@@ -356,9 +355,7 @@ export default function Catalog({ t, onNavigate, user, onCartChange }) {
 
                   {suggestions.length > 0 && (
                     <>
-                      <div className="suggest-title explore">
-                        {t.exploreBy}
-                      </div>
+                      <div className="suggest-title explore">{t.exploreBy}</div>
 
                       <button
                         className="suggest-chip"
@@ -422,16 +419,14 @@ export default function Catalog({ t, onNavigate, user, onCartChange }) {
 
                 <div className="prod-body">
                   <div className="prod-badges">
-                    {(product.plataformas || [])
-                      .slice(0, 2)
-                      .map((platform) => (
-                        <span
-                          key={platform.slug || platform.id}
-                          className="badge-plat"
-                        >
-                          {getTranslatedPlatform(t, platform)}
-                        </span>
-                      ))}
+                    {(product.plataformas || []).slice(0, 2).map((platform) => (
+                      <span
+                        key={platform.slug || platform.id}
+                        className="badge-plat"
+                      >
+                        {getTranslatedPlatform(t, platform)}
+                      </span>
+                    ))}
 
                     {product.cantidad_en_carrito > 0 && (
                       <span className="badge-cart">
