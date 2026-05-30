@@ -174,27 +174,22 @@ LOGOUT_REDIRECT_URL = '/login/'
 # Soporta dos formatos:
 # 1. EMAIL_HOST_USER / EMAIL_HOST_PASSWORD
 # 2. MONOLITH_EMAIL / MONOLITH_PASSWORD
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
 
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", default=10, cast=int)
 
-EMAIL_HOST_USER = config(
-    'EMAIL_HOST_USER',
-    default=config('MONOLITH_EMAIL', default='')
-)
-
-EMAIL_HOST_PASSWORD = config(
-    'EMAIL_HOST_PASSWORD',
-    default=config('MONOLITH_PASSWORD', default='')
-)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 
 DEFAULT_FROM_EMAIL = config(
-    'DEFAULT_FROM_EMAIL',
-    default=f'Monolith <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'Monolith <noreply@monolith.local>'
+    "DEFAULT_FROM_EMAIL",
+    default=f"Monolith <{EMAIL_HOST_USER}>"
 )
 
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
