@@ -34,6 +34,24 @@ export function getAuthToken() {
   return localStorage.getItem('token')
 }
 
+export async function bootstrapAuth() {
+  const token = getAuthToken()
+
+  if (!token) {
+    return null
+  }
+
+  setAuthToken(token)
+
+  try {
+    const { data } = await api.get('/auth/me/')
+    return data
+  } catch (error) {
+    setAuthToken(null)
+    return null
+  }
+}
+
 export function getApiError(error) {
   const data = error?.response?.data
   const status = error?.response?.status
