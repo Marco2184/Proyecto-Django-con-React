@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { auth } from '../services/firebase'
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
 import { api, getApiError } from '../services/api'
 
 export default function Register({ t, onNavigate, lang, toggleLang }) {
@@ -15,38 +17,52 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
   const [loading, setLoading] = useState(false)
 
   const handleChange = (field, value) => {
-    setForm({
-      ...form,
-      [field]: value
-    })
+    setForm({ ...form, [field]: value })
   }
 
   const submit = async (event) => {
     event.preventDefault()
-
     setError('')
     setMsg('')
     setLoading(true)
 
+    if (form.password1 !== form.password2) {
+      setError('Las contraseñas no coinciden.')
+      setLoading(false)
+      return
+    }
+
     try {
-      const { data } = await api.post('/auth/register/', form)
+      // 1. Crear usuario en Firebase
+      const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password1)
 
-      setMsg(
-        data.message ||
-          data.detail ||
-          t.verifyMail ||
-          'Cuenta creada. Revisa tu correo para verificarla.'
-      )
+      // 2. Actualizar nombre en Firebase
+      await updateProfile(user, { displayName: form.nombre })
 
-      setForm({
-        nombre: '',
-        email: '',
-        telefono: '',
-        password1: '',
-        password2: ''
+      // 3. Enviar verificación de correo desde Firebase
+      await sendEmailVerification(user)
+
+      // 4. Registrar datos adicionales en Django
+      const token = await user.getIdToken()
+      await api.post('/auth/firebase-register/', {
+        nombre: form.nombre,
+        email: form.email,
+        telefono: form.telefono,
+        firebase_uid: user.uid
+      }, {
+        headers: { Authorization: `Firebase ${token}` }
       })
+
+      setMsg('Cuenta creada. Revisa tu correo para verificarla.')
+      setForm({ nombre: '', email: '', telefono: '', password1: '', password2: '' })
     } catch (err) {
-      setError(getApiError(err))
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Este correo ya está registrado.')
+      } else if (err.code === 'auth/weak-password') {
+        setError('La contraseña debe tener al menos 6 caracteres.')
+      } else {
+        setError(err.message || getApiError(err))
+      }
     } finally {
       setLoading(false)
     }
@@ -56,63 +72,23 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
     <div className="auth-split">
       <section className="auth-hero">
         <div className="mono-line">// {t.appName} //</div>
-
         <h1>
           {lang === 'es' ? (
-            <>
-              CREA
-              <br />
-              TU
-              <br />
-              <span>
-                ARSENAL
-                <br />
-                GAMER
-              </span>
-            </>
+            <>CREA<br />TU<br /><span>ARSENAL<br />GAMER</span></>
           ) : (
-            <>
-              CREATE
-              <br />
-              YOUR
-              <br />
-              <span>
-                GAMING
-                <br />
-                ARSENAL
-              </span>
-            </>
+            <>CREATE<br />YOUR<br /><span>GAMING<br />ARSENAL</span></>
           )}
         </h1>
-
         <div className="hero-sep" />
-
         <p>{t.registerHeroSubtitle}</p>
-
         <div className="terminal-box">
-          &gt; {t.registerModule}
-          <br />
-          &gt; {t.smtpReady}
-          <br />
+          &gt; {t.registerModule}<br />
+          &gt; Firebase Auth<br />
           &gt; _
         </div>
-
         <div className="lang-switch">
-          <button
-            className={lang === 'es' ? 'active' : ''}
-            onClick={toggleLang}
-            type="button"
-          >
-            ES
-          </button>
-
-          <button
-            className={lang === 'en' ? 'active' : ''}
-            onClick={toggleLang}
-            type="button"
-          >
-            EN
-          </button>
+          <button className={lang === 'es' ? 'active' : ''} onClick={toggleLang} type="button">ES</button>
+          <button className={lang === 'en' ? 'active' : ''} onClick={toggleLang} type="button">EN</button>
         </div>
       </section>
 
@@ -126,51 +102,19 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
 
         <form onSubmit={submit} className="form-stack">
           <label>{t.name}</label>
-          <input
-            className="input-m"
-            value={form.nombre}
-            onChange={(event) => handleChange('nombre', event.target.value)}
-            placeholder={t.name}
-            required
-          />
+          <input className="input-m" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} placeholder={t.name} required />
 
           <label>{t.email}</label>
-          <input
-            className="input-m"
-            value={form.email}
-            onChange={(event) => handleChange('email', event.target.value)}
-            placeholder="correo@ejemplo.com"
-            type="email"
-            required
-          />
+          <input className="input-m" value={form.email} onChange={(e) => handleChange('email', e.target.value)} placeholder="correo@ejemplo.com" type="email" required />
 
           <label>{t.phone}</label>
-          <input
-            className="input-m"
-            value={form.telefono}
-            onChange={(event) => handleChange('telefono', event.target.value)}
-            placeholder={t.phone}
-          />
+          <input className="input-m" value={form.telefono} onChange={(e) => handleChange('telefono', e.target.value)} placeholder={t.phone} />
 
           <label>{t.password}</label>
-          <input
-            className="input-m"
-            value={form.password1}
-            onChange={(event) => handleChange('password1', event.target.value)}
-            placeholder={t.password}
-            type="password"
-            required
-          />
+          <input className="input-m" value={form.password1} onChange={(e) => handleChange('password1', e.target.value)} placeholder={t.password} type="password" required />
 
           <label>{t.confirm}</label>
-          <input
-            className="input-m"
-            value={form.password2}
-            onChange={(event) => handleChange('password2', event.target.value)}
-            placeholder={t.confirm}
-            type="password"
-            required
-          />
+          <input className="input-m" value={form.password2} onChange={(e) => handleChange('password2', e.target.value)} placeholder={t.confirm} type="password" required />
 
           <button className="btn-neon w-100" disabled={loading}>
             {loading ? '...' : t.create}
@@ -179,13 +123,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
 
         <div className="auth-foot">
           {t.haveAccount}{' '}
-          <button
-            className="link-neon"
-            onClick={() => onNavigate('login')}
-            type="button"
-          >
-            {t.login}
-          </button>
+          <button className="link-neon" onClick={() => onNavigate('login')} type="button">{t.login}</button>
         </div>
       </section>
     </div>
