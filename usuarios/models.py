@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 import uuid
 
 
@@ -111,11 +113,35 @@ class DireccionEnvio(models.Model):
 
 # ── H009.2 / H010 — Pedido ──────────────────────────────────
 class Pedido(models.Model):
+    METODOS_PAGO = [
+        ('tarjeta', 'Tarjeta'),
+        ('transferencia', 'Transferencia'),
+    ]
+
+    ESTADOS_PAGO = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+
     usuario     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pedidos')
     numero      = models.CharField(max_length=20, unique=True, blank=True)
     fecha       = models.DateTimeField(auto_now_add=True)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
     estado      = models.CharField(max_length=20, choices=ESTADOS_PEDIDO, default='pendiente')
+
+    # Sprint 4 — checkout, pago simulado y entrega
+    direccion_envio = models.ForeignKey(
+        'DireccionEnvio', null=True, blank=True, on_delete=models.SET_NULL, related_name='pedidos'
+    )
+    direccion_texto = models.TextField(blank=True)
+    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='tarjeta')
+    estado_pago = models.CharField(max_length=20, choices=ESTADOS_PAGO, default='pendiente')
+    referencia_pago = models.CharField(max_length=80, blank=True)
+    fecha_estimada_entrega = models.DateField(null=True, blank=True)
+    entregado_en = models.DateTimeField(null=True, blank=True)
+    cancelado_en = models.DateTimeField(null=True, blank=True)
+    motivo_cancelacion = models.CharField(max_length=250, blank=True)
 
     class Meta:
         verbose_name        = 'Pedido'
@@ -124,11 +150,58 @@ class Pedido(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = not self.pk
+        if not self.fecha_estimada_entrega:
+            self.fecha_estimada_entrega = (timezone.now() + timedelta(days=14)).date()
         super().save(*args, **kwargs)
         if is_new and not self.numero:
-            from django.utils import timezone
             self.numero = f'MNL-{timezone.now().year}-{self.pk:05d}'
             Pedido.objects.filter(pk=self.pk).update(numero=self.numero)
 
+    @property
+    def puede_cancelar(self):
+        return self.estado in ['pendiente', 'procesando'] and self.estado_pago != 'rechazado'
+
+    @property
+    def motivo_no_cancelable(self):
+        if self.estado == 'cancelado':
+            return 'El pedido ya fue cancelado.'
+        if self.estado in ['enviado', 'entregado']:
+            return 'No se puede cancelar porque el pedido ya fue enviado o entregado.'
+        if self.estado_pago == 'rechazado':
+            return 'No se puede cancelar porque el pago fue rechazado.'
+        return ''
+
     def __str__(self):
         return f'#{self.numero}'
+
+
+class PedidoItem(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
+    producto = models.ForeignKey('productos.Producto', null=True, blank=True, on_delete=models.SET_NULL)
+    producto_nombre = models.CharField(max_length=200)
+    producto_imagen = models.URLField(blank=True)
+    cantidad = models.PositiveIntegerField(default=1)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Item de pedido'
+        verbose_name_plural = 'Items de pedido'
+
+    def __str__(self):
+        return f'{self.cantidad}x {self.producto_nombre}'
+
+
+class PedidoTimeline(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='timeline')
+    estado = models.CharField(max_length=20, choices=ESTADOS_PEDIDO)
+    descripcion = models.CharField(max_length=250)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['creado_en']
+        verbose_name = 'Evento de pedido'
+        verbose_name_plural = 'Eventos de pedido'
+
+    def __str__(self):
+        return f'{self.pedido.numero} - {self.estado}' 

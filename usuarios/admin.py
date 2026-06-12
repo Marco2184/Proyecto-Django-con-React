@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Usuario, DireccionEnvio, Pedido
+from .models import Usuario, DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
@@ -32,3 +32,13 @@ class PedidoAdmin(admin.ModelAdmin):
     list_filter   = ('estado', 'fecha')
     search_fields = ('numero', 'usuario__email')
     ordering      = ('-fecha',)
+
+
+@admin.register(PedidoItem)
+class PedidoItemAdmin(admin.ModelAdmin):
+    list_display = ('pedido', 'producto_nombre', 'cantidad', 'precio_unitario', 'subtotal')
+
+
+@admin.register(PedidoTimeline)
+class PedidoTimelineAdmin(admin.ModelAdmin):
+    list_display = ('pedido', 'estado', 'descripcion', 'creado_en')

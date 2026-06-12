@@ -49,6 +49,9 @@ urlpatterns = [
     path('api/profile/addresses/', usuarios_api.addresses),
     path('api/profile/addresses/<int:pk>/', usuarios_api.address_detail),
     path('api/profile/orders/', usuarios_api.orders),
+    path('api/profile/orders/<int:pk>/', usuarios_api.order_detail),
+    path('api/profile/orders/<int:pk>/cancel/', usuarios_api.cancel_order),
+    path('api/profile/orders/<int:pk>/receipt/', usuarios_api.order_receipt),
     path('api/i18n/set-language/', usuarios_api.set_language),
 
     # API Carrito

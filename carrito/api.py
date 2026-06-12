@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from productos.models import Producto, Categoria
-from usuarios.models import Pedido
+from usuarios.models import DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 from productos.serializers import ProductoListSerializer
 from productos.api import exclude_adult_content
 from .models import Carrito, ItemCarrito
@@ -163,7 +163,46 @@ def cart_checkout(request):
     carrito = _get_carrito(request.user)
     mensajes = _normalize_carrito(carrito)
 
+    direccion_id = request.data.get('direccion_id')
+    direccion_data = request.data.get('direccion') or {}
+    metodo_pago = request.data.get('metodo_pago', 'tarjeta')
+    pago_data = request.data.get('pago') or {}
+
+    if metodo_pago not in ['tarjeta', 'transferencia']:
+        return Response({'detail': 'Método de pago inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if metodo_pago == 'tarjeta':
+        numero_tarjeta = ''.join(ch for ch in str(pago_data.get('numero_tarjeta', '')) if ch.isdigit())
+        cvv = ''.join(ch for ch in str(pago_data.get('cvv', '')) if ch.isdigit())
+        if len(numero_tarjeta) < 12 or len(cvv) < 3:
+            return Response({'detail': 'Datos de tarjeta incompletos para el pago simulado.'}, status=status.HTTP_400_BAD_REQUEST)
+
     with transaction.atomic():
+        direccion = None
+        if direccion_id:
+            try:
+                direccion = request.user.direcciones.select_for_update().get(pk=direccion_id)
+            except DireccionEnvio.DoesNotExist:
+                return Response({'detail': 'Dirección de envío no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            required = ['calle', 'ciudad', 'departamento', 'codigo_postal']
+            faltantes = [field for field in required if not direccion_data.get(field)]
+            if faltantes:
+                return Response(
+                    {'detail': 'Completa la dirección de envío antes de pagar.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            direccion = DireccionEnvio.objects.create(
+                usuario=request.user,
+                calle=direccion_data.get('calle', '').strip(),
+                ciudad=direccion_data.get('ciudad', '').strip(),
+                departamento=direccion_data.get('departamento', '').strip(),
+                codigo_postal=direccion_data.get('codigo_postal', '').strip(),
+                predeterminada=bool(direccion_data.get('predeterminada', False)),
+            )
+            if direccion.predeterminada:
+                request.user.direcciones.exclude(pk=direccion.pk).update(predeterminada=False)
+
         items = list(
             carrito.itemcarrito_set
             .select_for_update()
@@ -174,7 +213,6 @@ def cart_checkout(request):
         if not items:
             return Response({'detail': 'El carrito está vacío.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Bloqueo de filas de producto para evitar confirmar más unidades de las disponibles.
         productos = {
             p.id: p
             for p in Producto.objects.select_for_update().filter(
@@ -195,17 +233,45 @@ def cart_checkout(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        direccion_texto = f'{direccion.calle}, {direccion.ciudad}, {direccion.departamento} - {direccion.codigo_postal}'
+        referencia = f'SIM-{metodo_pago.upper()}-{request.user.id}'
+
         pedido = Pedido.objects.create(
             usuario=request.user,
             monto_total=carrito.total,
-            estado='pendiente',
+            estado='procesando',
+            direccion_envio=direccion,
+            direccion_texto=direccion_texto,
+            metodo_pago=metodo_pago,
+            estado_pago='aprobado',
+            referencia_pago=referencia,
         )
 
         for item in items:
             producto = productos[item.producto_id]
+            PedidoItem.objects.create(
+                pedido=pedido,
+                producto=producto,
+                producto_nombre=producto.nombre,
+                producto_imagen=getattr(producto, 'imagen_url', '') or '',
+                cantidad=item.cantidad,
+                precio_unitario=producto.precio,
+                subtotal=item.subtotal,
+            )
             producto.stock = max(producto.stock - item.cantidad, 0)
             producto.ventas = (producto.ventas or 0) + item.cantidad
             producto.save(update_fields=['stock', 'ventas'])
+
+        PedidoTimeline.objects.create(
+            pedido=pedido,
+            estado='pendiente',
+            descripcion='Pedido recibido.',
+        )
+        PedidoTimeline.objects.create(
+            pedido=pedido,
+            estado='procesando',
+            descripcion='Pago simulado aprobado. Preparando entrega.',
+        )
 
         carrito.itemcarrito_set.all().delete()
 
@@ -215,7 +281,10 @@ def cart_checkout(request):
             'id': pedido.id,
             'numero': pedido.numero,
             'estado': pedido.estado,
+            'estado_pago': pedido.estado_pago,
+            'metodo_pago': pedido.metodo_pago,
             'monto_total': str(pedido.monto_total),
+            'fecha_estimada_entrega': str(pedido.fecha_estimada_entrega),
         },
         'carrito': _cart_payload(carrito, mensajes, request),
     }, status=status.HTTP_201_CREATED)

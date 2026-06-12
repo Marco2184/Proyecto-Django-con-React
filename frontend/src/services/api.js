@@ -108,3 +108,13 @@ export function getApiError(error) {
 
   return `Error HTTP ${status || ''}`
 }
+
+// Sprint 4 helpers
+export const checkoutApi = {
+  listAddresses: () => api.get('/profile/addresses/'),
+  listOrders: (params = {}) => api.get('/profile/orders/', { params }),
+  getOrder: (id) => api.get(`/profile/orders/${id}/`),
+  cancelOrder: (id, motivo = 'Cancelado por el cliente') => api.post(`/profile/orders/${id}/cancel/`, { motivo }),
+  receipt: (id) => api.get(`/profile/orders/${id}/receipt/`, { responseType: 'blob' }),
+  confirm: (payload) => api.post('/cart/checkout/', payload),
+}

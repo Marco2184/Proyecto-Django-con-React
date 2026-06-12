@@ -1,0 +1,165 @@
+.checkout-page .checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.checkout-card,
+.checkout-summary,
+.confirmed-card {
+  margin-bottom: 1rem;
+}
+
+.checkout-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+  margin-top: .8rem;
+}
+
+.checkout-radio,
+.checkout-check {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin: .75rem 0;
+  color: var(--text-muted, #b8c3d9);
+}
+
+.payment-tabs {
+  display: flex;
+  gap: .6rem;
+  margin-bottom: 1rem;
+}
+
+.payment-tabs button {
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05);
+  color: inherit;
+  border-radius: 999px;
+  padding: .7rem 1rem;
+  cursor: pointer;
+}
+
+.payment-tabs button.active {
+  border-color: rgba(0,255,200,.8);
+  box-shadow: 0 0 14px rgba(0,255,200,.18);
+}
+
+.summary-row,
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.summary-total {
+  font-size: 1.15rem;
+  border-bottom: 0;
+  margin-top: .5rem;
+}
+
+.orders-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: .8rem;
+  margin: 1rem 0;
+}
+
+.monthly-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+
+.summary-chip,
+.order-card,
+.timeline-item {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  border-radius: 16px;
+  padding: .9rem;
+}
+
+.summary-chip {
+  display: grid;
+  gap: .25rem;
+}
+
+.orders-group h2 {
+  margin-top: 1.2rem;
+}
+
+.orders-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.order-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.order-card-right {
+  display: grid;
+  gap: .5rem;
+  justify-items: end;
+}
+
+.status-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: .3rem .7rem;
+  font-size: .8rem;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+.status-pill.procesando,
+.status-pill.pendiente {
+  border-color: rgba(255,210,80,.55);
+}
+
+.status-pill.entregado {
+  border-color: rgba(80,255,180,.55);
+}
+
+.status-pill.cancelado {
+  border-color: rgba(255,80,120,.55);
+}
+
+.timeline-list {
+  display: grid;
+  gap: .65rem;
+  margin-top: 1rem;
+}
+
+.timeline-item {
+  display: grid;
+  gap: .25rem;
+}
+
+.btn-ghost.danger {
+  border-color: rgba(255,80,120,.45);
+}
+
+@media (max-width: 900px) {
+  .checkout-page .checkout-grid,
+  .orders-toolbar,
+  .checkout-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-card {
+    display: grid;
+  }
+
+  .order-card-right {
+    justify-items: stretch;
+  }
+}

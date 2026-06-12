@@ -4,6 +4,9 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail
 from django.utils.translation import activate
+from django.utils import timezone
+from django.db.models.functions import TruncMonth
+from django.db.models import Count, Sum
 
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
@@ -13,24 +16,47 @@ from rest_framework.response import Response
 
 from decouple import config
 
-from .models import Usuario, DireccionEnvio, Pedido
+from .models import Usuario, DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
 
-if not firebase_admin._apps:
-    cred = credentials.Certificate({
-        "type": "service_account",
-        "project_id": config("FIREBASE_PROJECT_ID", default=""),
-        "private_key_id": config("FIREBASE_PRIVATE_KEY_ID", default=""),
-        "private_key": config("FIREBASE_PRIVATE_KEY", default="").replace("\\n", "\n"),
-        "client_email": config("FIREBASE_CLIENT_EMAIL", default=""),
-        "client_id": config("FIREBASE_CLIENT_ID", default=""),
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-    })
-    firebase_admin.initialize_app(cred)
+def _init_firebase_if_configured():
+    if firebase_admin._apps:
+        return True
+
+    project_id = config("FIREBASE_PROJECT_ID", default="")
+    private_key_id = config("FIREBASE_PRIVATE_KEY_ID", default="")
+    private_key = config("FIREBASE_PRIVATE_KEY", default="").replace("\\n", "\n")
+    client_email = config("FIREBASE_CLIENT_EMAIL", default="")
+    client_id = config("FIREBASE_CLIENT_ID", default="")
+
+    required_values = [project_id, private_key_id, private_key, client_email, client_id]
+
+    if not all(required_values) or "BEGIN PRIVATE KEY" not in private_key:
+        print("Firebase no configurado correctamente. Se omite inicialización local.")
+        return False
+
+    try:
+        cred = credentials.Certificate({
+            "type": "service_account",
+            "project_id": project_id,
+            "private_key_id": private_key_id,
+            "private_key": private_key,
+            "client_email": client_email,
+            "client_id": client_id,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+        })
+        firebase_admin.initialize_app(cred)
+        return True
+    except Exception as e:
+        print("Firebase no pudo inicializarse:", repr(e))
+        return False
+
+
+_init_firebase_if_configured()
 
 
 FRONTEND_URL = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
@@ -145,10 +171,60 @@ class DireccionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "creado_en"]
 
 
+class PedidoItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PedidoItem
+        fields = [
+            "id", "producto", "producto_nombre", "producto_imagen",
+            "cantidad", "precio_unitario", "subtotal",
+        ]
+
+
+class PedidoTimelineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PedidoTimeline
+        fields = ["id", "estado", "descripcion", "creado_en"]
+
+
 class PedidoSerializer(serializers.ModelSerializer):
+    items_count = serializers.SerializerMethodField()
+    puede_cancelar = serializers.SerializerMethodField()
+    motivo_no_cancelable = serializers.SerializerMethodField()
+
     class Meta:
         model = Pedido
-        fields = ["id", "numero", "fecha", "monto_total", "estado"]
+        fields = [
+            "id", "numero", "fecha", "monto_total", "estado",
+            "metodo_pago", "estado_pago", "referencia_pago",
+            "fecha_estimada_entrega", "items_count",
+            "puede_cancelar", "motivo_no_cancelable",
+        ]
+
+    def get_items_count(self, obj):
+        return obj.items.count()
+
+    def get_puede_cancelar(self, obj):
+        return obj.puede_cancelar
+
+    def get_motivo_no_cancelable(self, obj):
+        return obj.motivo_no_cancelable
+
+
+class PedidoDetalleSerializer(PedidoSerializer):
+    items = PedidoItemSerializer(many=True, read_only=True)
+    timeline = PedidoTimelineSerializer(many=True, read_only=True)
+    direccion = serializers.SerializerMethodField()
+
+    class Meta(PedidoSerializer.Meta):
+        fields = PedidoSerializer.Meta.fields + [
+            "direccion", "direccion_texto", "entregado_en",
+            "cancelado_en", "motivo_cancelacion", "items", "timeline",
+        ]
+
+    def get_direccion(self, obj):
+        if obj.direccion_envio:
+            return DireccionSerializer(obj.direccion_envio).data
+        return None
 
 
 @api_view(["POST"])
@@ -456,11 +532,12 @@ def address_detail(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def orders(request):
-    qs = request.user.pedidos.all()
+    qs = request.user.pedidos.prefetch_related("items").all()
 
     estado = request.query_params.get("estado")
     desde = request.query_params.get("fecha_desde")
     hasta = request.query_params.get("fecha_hasta")
+    search = (request.query_params.get("search") or "").strip()
 
     if estado:
         qs = qs.filter(estado=estado)
@@ -471,7 +548,111 @@ def orders(request):
     if hasta:
         qs = qs.filter(fecha__date__lte=hasta)
 
-    return Response(PedidoSerializer(qs[:50], many=True).data)
+    if search:
+        qs = qs.filter(numero__icontains=search)
+
+    resumen_mensual = list(
+        qs.annotate(mes=TruncMonth("fecha"))
+          .values("mes")
+          .annotate(total=Sum("monto_total"), cantidad=Count("id"))
+          .order_by("-mes")
+    )
+
+    return Response({
+        "results": PedidoSerializer(qs[:80], many=True).data,
+        "resumen_mensual": [
+            {
+                "mes": item["mes"].strftime("%Y-%m") if item["mes"] else "",
+                "total": str(item["total"] or 0),
+                "cantidad": item["cantidad"],
+            }
+            for item in resumen_mensual
+        ],
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def order_detail(request, pk):
+    try:
+        pedido = request.user.pedidos.prefetch_related("items", "timeline").get(pk=pk)
+    except Pedido.DoesNotExist:
+        return Response({"detail": "Pedido no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(PedidoDetalleSerializer(pedido).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cancel_order(request, pk):
+    try:
+        pedido = request.user.pedidos.prefetch_related("items").get(pk=pk)
+    except Pedido.DoesNotExist:
+        return Response({"detail": "Pedido no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    if not pedido.puede_cancelar:
+        return Response(
+            {"detail": pedido.motivo_no_cancelable or "El pedido ya no puede cancelarse."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    motivo = request.data.get("motivo", "Cancelado por el cliente")
+
+    for item in pedido.items.select_related("producto"):
+        if item.producto_id:
+            item.producto.stock = item.producto.stock + item.cantidad
+            item.producto.ventas = max((item.producto.ventas or 0) - item.cantidad, 0)
+            item.producto.save(update_fields=["stock", "ventas"])
+
+    pedido.estado = "cancelado"
+    pedido.cancelado_en = timezone.now()
+    pedido.motivo_cancelacion = motivo[:250]
+    pedido.save(update_fields=["estado", "cancelado_en", "motivo_cancelacion"])
+
+    PedidoTimeline.objects.create(
+        pedido=pedido,
+        estado="cancelado",
+        descripcion="Pedido cancelado por el cliente.",
+    )
+
+    return Response(PedidoDetalleSerializer(pedido).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def order_receipt(request, pk):
+    try:
+        pedido = request.user.pedidos.prefetch_related("items").get(pk=pk)
+    except Pedido.DoesNotExist:
+        return Response({"detail": "Pedido no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    lines = [
+        "MONOLITH GAMING STORE",
+        f"Comprobante: {pedido.numero}",
+        f"Fecha: {pedido.fecha.strftime('%d/%m/%Y %H:%M')}",
+        f"Cliente: {request.user.nombre} <{request.user.email}>",
+        f"Estado del pedido: {pedido.estado}",
+        f"Pago: {pedido.metodo_pago} / {pedido.estado_pago}",
+        f"Referencia: {pedido.referencia_pago or '-'}",
+        "",
+        "Productos:",
+    ]
+
+    for item in pedido.items.all():
+        lines.append(
+            f"- {item.producto_nombre} x{item.cantidad} | S/ {item.precio_unitario} | Subtotal S/ {item.subtotal}"
+        )
+
+    lines += [
+        "",
+        f"Total: S/ {pedido.monto_total}",
+        f"Dirección: {pedido.direccion_texto or '-'}",
+        f"Entrega estimada: {pedido.fecha_estimada_entrega or '-'}",
+    ]
+
+    response = Response("\n".join(lines), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="comprobante-{pedido.numero}.txt"'
+    return response
 
 
 @api_view(["POST"])
@@ -491,6 +672,9 @@ def set_language(request):
 
 
 def _verify_firebase_token(request):
+    if not _init_firebase_if_configured():
+        return None
+
     auth_header = request.headers.get("Authorization", "")
 
     if not auth_header.startswith("Firebase "):
@@ -504,9 +688,9 @@ def _verify_firebase_token(request):
         print("ERROR FIREBASE TOKEN:", repr(e))
         return None
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+
 def firebase_sync_email(request):
     decoded = _verify_firebase_token(request)
 

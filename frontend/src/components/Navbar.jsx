@@ -17,6 +17,7 @@ export default function Navbar({ user, onLogout, cartItems, onNavigate, page, la
         <div className="nav-links">
           <span className={`nav-link-m ${page === 'catalog' ? 'active' : ''}`} onClick={() => onNavigate('catalog')}>{t.catalog}</span>
           <span className={`nav-link-m ${page === 'cart' ? 'active' : ''}`} onClick={() => user ? onNavigate('cart') : onNavigate('login')}>{t.cart} {cartItems > 0 && `(${cartItems})`}</span>
+          {user && <span className={`nav-link-m ${page === 'misPedidos' || page === 'detallePedido' ? 'active' : ''}`} onClick={() => onNavigate('misPedidos')}>{t.myOrders || 'Mis pedidos'}</span>}
           {user && <span className={`nav-link-m ${page === 'profile' ? 'active' : ''}`} onClick={() => onNavigate('profile')}>{t.profile}</span>}
         </div>
 

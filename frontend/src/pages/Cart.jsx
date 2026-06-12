@@ -226,23 +226,8 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
     }
   }
 
-  const checkout = async () => {
-    try {
-      setError('')
-      setNotice(null)
-
-      const { data } = await api.post('/cart/checkout/')
-
-      setCart(data.carrito || data)
-      onCartChange?.()
-      setNotice({
-        type: 'success',
-        key: 'orderCreated',
-        extra: data.pedido?.numero
-      })
-    } catch (err) {
-      setError(getApiError(err))
-    }
+  const checkout = () => {
+    onNavigate('checkout')
   }
 
   const filteredItems = useMemo(() => {

@@ -12,6 +12,10 @@ import ProductDetail from './pages/ProductDetail'
 import VerifyEmail from './pages/VerifyEmail'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import Checkout from './pages/Checkout'
+import MisPedidos from './pages/MisPedidos'
+import DetallePedido from './pages/DetallePedido'
+import PedidoConfirmado from './pages/PedidoConfirmado'
 import { api, bootstrapAuth, setAuthToken } from './services/api'
 import { auth } from './services/firebase'
 import { dict } from './i18n'
@@ -29,6 +33,8 @@ function App() {
   const [page, setPage] = useState(route.page)
   const [routeToken] = useState(route.token)
   const [productId, setProductId] = useState(route.productId)
+  const [orderId, setOrderId] = useState(null)
+  const [lastPedido, setLastPedido] = useState(null)
   const [user, setUser] = useState(null)
   const [firebaseUser, setFirebaseUser] = useState(null)
   const [firebaseReady, setFirebaseReady] = useState(false)
@@ -100,6 +106,14 @@ function App() {
       setProductId(payload.productId)
     }
 
+    if (payload.orderId) {
+      setOrderId(payload.orderId)
+    }
+
+    if (payload.pedido) {
+      setLastPedido(payload.pedido)
+    }
+
     if (nextPage === 'detail' && payload.productId) {
       window.history.pushState({}, '', `/producto/${payload.productId}`)
     } else if (!['verify', 'reset'].includes(nextPage)) {
@@ -163,6 +177,22 @@ function App() {
 
       {page === 'cart' && (
         <Cart t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />
+      )}
+
+      {page === 'checkout' && (
+        <Checkout t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />
+      )}
+
+      {page === 'pedidoConfirmado' && (
+        <PedidoConfirmado t={t} orderId={orderId} pedido={lastPedido} onNavigate={navigate} />
+      )}
+
+      {page === 'misPedidos' && (
+        <MisPedidos t={t} user={user} onNavigate={navigate} />
+      )}
+
+      {page === 'detallePedido' && (
+        <DetallePedido t={t} user={user} orderId={orderId} onNavigate={navigate} />
       )}
 
       {page === 'profile' && (
