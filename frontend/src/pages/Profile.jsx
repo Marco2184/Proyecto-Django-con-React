@@ -118,18 +118,30 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
     return data.user
   }
 
-  const loadAddresses = () =>
-    api.get('/profile/addresses/').then(({ data }) => setAddresses(data))
-
-  const loadOrders = () => {
-    const params = new URLSearchParams(
-      Object.entries(filters).filter(([, value]) => value)
-    )
-
-    return api.get(`/profile/orders/?${params}`).then(({ data }) => {
-      setOrders(data)
-    })
+  const normalizeList = (data) => {
+    if (Array.isArray(data)) return data
+    if (Array.isArray(data?.results)) return data.results
+    return []
   }
+
+  const loadAddresses = () =>
+    api.get('/profile/addresses/').then(({ data }) => {
+      setAddresses(normalizeList(data))
+    }).catch(() => {
+      setAddresses([])
+    })
+
+const loadOrders = () => {
+  const params = new URLSearchParams(
+    Object.entries(filters).filter(([, value]) => value)
+  )
+
+  return api.get(`/profile/orders/?${params}`).then(({ data }) => {
+    setOrders(normalizeList(data))
+  }).catch(() => {
+    setOrders([])
+  })
+}
 
   const saveProfile = (event) =>
     safe(async () => {

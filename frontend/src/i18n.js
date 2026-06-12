@@ -98,6 +98,13 @@ export const dict = {
     payAndConfirm: 'Pagar y confirmar',
     processing: 'Procesando...',
     backToCart: 'Volver al carrito',
+    card: 'Tarjeta',
+    transfer: 'Transferencia',
+    transferInfo: 'Pago por transferencia simulado. El sistema aprobará el pedido automáticamente para el trabajo.',
+    cardNumber: 'Número de tarjeta',
+    cardName: 'Nombre en tarjeta',
+    cardExpiration: 'MM/AA',
+    cardCvv: 'CVV',
     orderConfirmed: 'Pedido confirmado',
     viewOrderDetail: 'Ver detalle',
     myOrders: 'Mis pedidos',
@@ -322,6 +329,7 @@ export const dict = {
       players: 'Jugadores',
       jugadores: 'Jugadores'
     }
+    
   },
 
   en: {
@@ -423,6 +431,13 @@ export const dict = {
     payAndConfirm: 'Pay and confirm',
     processing: 'Processing...',
     backToCart: 'Back to cart',
+    card: 'Card',
+    transfer: 'Transfer',
+    transferInfo: 'Simulated transfer payment. The system will automatically approve the order for the project.',
+    cardNumber: 'Card number',
+    cardName: 'Name on card',
+    cardExpiration: 'MM/YY',
+    cardCvv: 'CVV',
     orderConfirmed: 'Order confirmed',
     viewOrderDetail: 'View detail',
     myOrders: 'My orders',

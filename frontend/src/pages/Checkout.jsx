@@ -164,20 +164,24 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
           <section className="panel-card checkout-card">
             <h2>{t.paymentMethod || 'Método de pago'}</h2>
             <div className="payment-tabs">
-              <button className={metodoPago === 'tarjeta' ? 'active' : ''} onClick={() => setMetodoPago('tarjeta')}>Tarjeta</button>
-              <button className={metodoPago === 'transferencia' ? 'active' : ''} onClick={() => setMetodoPago('transferencia')}>Transferencia</button>
+             <button className={metodoPago === 'tarjeta' ? 'active' : ''} onClick={() => setMetodoPago('tarjeta')}>
+              {t.card || 'Tarjeta'}
+            </button>
+            <button className={metodoPago === 'transferencia' ? 'active' : ''} onClick={() => setMetodoPago('transferencia')}>
+              {t.transfer || 'Transferencia'}
+            </button>
             </div>
 
             {metodoPago === 'tarjeta' ? (
               <div className="checkout-form-grid">
-                <input className="input-m" placeholder="Número de tarjeta" value={payment.numero_tarjeta} onChange={(e) => setPayment({ ...payment, numero_tarjeta: e.target.value })} />
-                <input className="input-m" placeholder="Nombre en tarjeta" value={payment.nombre_tarjeta} onChange={(e) => setPayment({ ...payment, nombre_tarjeta: e.target.value })} />
-                <input className="input-m" placeholder="MM/AA" value={payment.vencimiento} onChange={(e) => setPayment({ ...payment, vencimiento: e.target.value })} />
-                <input className="input-m" placeholder="CVV" value={payment.cvv} onChange={(e) => setPayment({ ...payment, cvv: e.target.value })} />
+                <input className="input-m" placeholder={t.cardNumber || 'Número de tarjeta'} value={payment.numero_tarjeta} onChange={(e) => setPayment({ ...payment, numero_tarjeta: e.target.value })} />
+                <input className="input-m" placeholder={t.cardName || 'Nombre en tarjeta'} value={payment.nombre_tarjeta} onChange={(e) => setPayment({ ...payment, nombre_tarjeta: e.target.value })} />
+                <input className="input-m" placeholder={t.cardExpiration || 'MM/AA'} value={payment.vencimiento} onChange={(e) => setPayment({ ...payment, vencimiento: e.target.value })} />
+                <input className="input-m" placeholder={t.cardCvv || 'CVV'} value={payment.cvv} onChange={(e) => setPayment({ ...payment, cvv: e.target.value })} />
               </div>
             ) : (
               <div className="alert success">
-                Pago por transferencia simulado. El sistema aprobará el pedido automáticamente para el trabajo.
+                {t.transferInfo || 'Pago por transferencia simulado. El sistema aprobará el pedido automáticamente para el trabajo.'}
               </div>
             )}
           </section>
