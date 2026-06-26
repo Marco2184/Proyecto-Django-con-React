@@ -6,41 +6,28 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
+Usuario = get_user_model()
 
-username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")
 email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@monolith.com")
 password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+nombre = os.environ.get("DJANGO_SUPERUSER_NOMBRE", "Administrador Monolith")
 
 if not password:
     raise ValueError("Falta DJANGO_SUPERUSER_PASSWORD en las variables de entorno de Render.")
 
-# Tu modelo personalizado probablemente usa email como identificador.
-# Primero intenta buscar por email.
-user = User.objects.filter(email=email).first()
+# Buscar usuario por correo
+user = Usuario.objects.filter(email=email).first()
 
-# Si no existe, intenta buscar por username si el modelo tiene ese campo.
-if not user and hasattr(User, "username"):
-    user = User.objects.filter(username=username).first()
-
-# Si no existe, lo crea.
+# Si no existe, crearlo con los campos obligatorios de tu modelo
 if not user:
-    try:
-        user = User.objects.create_user(
-            email=email,
-            password=password,
-            username=username
-        )
-    except TypeError:
-        user = User.objects.create_user(
-            email=email,
-            password=password
-        )
+    user = Usuario.objects.create_user(
+        email=email,
+        nombre=nombre,
+        password=password
+    )
 
-# Actualiza permisos admin.
-if hasattr(user, "username"):
-    user.username = username
-
+# Asegurar permisos de administrador
+user.nombre = nombre
 user.email = email
 user.is_staff = True
 user.is_superuser = True
