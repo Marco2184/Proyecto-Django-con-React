@@ -1,12 +1,21 @@
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from productos.models import Producto
+
+
+CUPONES_DISPONIBLES = {
+    'MONOLITH10': {'tipo': 'porcentaje', 'valor': Decimal('10')},
+    'GAMER20': {'tipo': 'porcentaje', 'valor': Decimal('20')},
+    'NEON50': {'tipo': 'fijo', 'valor': Decimal('50')},
+}
 
 
 class Carrito(models.Model):
     """Carrito de compras de un usuario."""
     usuario     = models.OneToOneField(settings.AUTH_USER_MODEL,
                                         on_delete=models.CASCADE, related_name='carrito')
+    codigo_cupon = models.CharField(max_length=30, blank=True, default='')
     creado      = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
@@ -18,8 +27,31 @@ class Carrito(models.Model):
         return self.itemcarrito_set.select_related('producto').all()
 
     @property
+    def subtotal(self):
+        return sum((i.subtotal for i in self.items), Decimal('0.00'))
+
+    @property
+    def cupon(self):
+        codigo = (self.codigo_cupon or '').strip().upper()
+        return codigo if codigo in CUPONES_DISPONIBLES else ''
+
+    @property
+    def descuento(self):
+        subtotal = self.subtotal
+        if subtotal <= 0 or not self.cupon:
+            return Decimal('0.00')
+
+        regla = CUPONES_DISPONIBLES[self.cupon]
+        if regla['tipo'] == 'porcentaje':
+            descuento = subtotal * regla['valor'] / Decimal('100')
+        else:
+            descuento = regla['valor']
+
+        return min(descuento, subtotal).quantize(Decimal('0.01'))
+
+    @property
     def total(self):
-        return sum(i.subtotal for i in self.items)
+        return max(self.subtotal - self.descuento, Decimal('0.00')).quantize(Decimal('0.01'))
 
     @property
     def cantidad_items(self):

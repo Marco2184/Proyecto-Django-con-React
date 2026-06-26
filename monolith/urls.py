@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from productos.api import ProductoViewSet, PlataformaViewSet, CategoriaViewSet
 from usuarios import api as usuarios_api
+from usuarios import admin_api
 from carrito import api as carrito_api
 
 router = DefaultRouter()
@@ -54,11 +55,22 @@ urlpatterns = [
     path('api/profile/orders/<int:pk>/receipt/', usuarios_api.order_receipt),
     path('api/i18n/set-language/', usuarios_api.set_language),
 
+    # API Administrador
+    path('api/admin/dashboard/', admin_api.admin_dashboard),
+    path('api/admin/products/', admin_api.admin_products),
+    path('api/admin/products/<int:pk>/', admin_api.admin_product_detail),
+    path('api/admin/catalog-options/', admin_api.admin_catalog_options),
+    path('api/admin/orders/', admin_api.admin_orders),
+    path('api/admin/orders/<int:pk>/', admin_api.admin_order_detail),
+    path('api/admin/users/', admin_api.admin_users),
+
     # API Carrito
     path('api/cart/', carrito_api.cart_detail),
     path('api/cart/add/', carrito_api.cart_add),
     path('api/cart/items/<int:item_id>/', carrito_api.cart_item),
     path('api/cart/clear/', carrito_api.cart_clear),
+    path('api/cart/aplicar-cupon/', carrito_api.cart_apply_coupon),
+    path('api/cart/quitar-cupon/', carrito_api.cart_remove_coupon),
     path('api/cart/checkout/', carrito_api.cart_checkout),
 
     # Rutas antiguas conservadas como backend legacy/template, sin borrar tu Django previo.

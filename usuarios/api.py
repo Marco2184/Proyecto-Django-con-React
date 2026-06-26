@@ -97,6 +97,8 @@ def _user_payload(user):
         "telefono": user.telefono,
         "email_verificado": user.email_verificado,
         "fecha_registro": user.fecha_registro,
+        "is_staff": user.is_staff,
+        "is_superuser": user.is_superuser,
     }
 
 

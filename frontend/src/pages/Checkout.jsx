@@ -26,6 +26,7 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
   const [payment, setPayment] = useState({ numero_tarjeta: '', nombre_tarjeta: '', vencimiento: '', cvv: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState('idle')
 
   const hasSavedAddress = addresses.length > 0
 
@@ -74,7 +75,10 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
   const confirmCheckout = async () => {
     try {
       setLoading(true)
+      setPaymentStatus('processing')
       setError('')
+
+      await new Promise((resolve) => window.setTimeout(resolve, 2500))
 
       const payload = {
         metodo_pago: metodoPago,
@@ -88,9 +92,14 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
       }
 
       const { data } = await api.post('/cart/checkout/', payload)
+
+      setPaymentStatus('approved')
+      await new Promise((resolve) => window.setTimeout(resolve, 900))
+
       onCartChange?.()
       onNavigate('pedidoConfirmado', { orderId: data.pedido.id, pedido: data.pedido })
     } catch (err) {
+      setPaymentStatus('idle')
       setError(getApiError(err))
     } finally {
       setLoading(false)
@@ -194,6 +203,18 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
                 <strong>S/ {toNumber(item.subtotal).toFixed(2)}</strong>
               </div>
             ))}
+            <div className="summary-row">
+              <span>{t.subtotal || 'Subtotal'}</span>
+              <strong>S/ {toNumber(cart.subtotal).toFixed(2)}</strong>
+            </div>
+
+            {toNumber(cart.descuento) > 0 && (
+              <div className="summary-row checkout-discount-row">
+                <span>{t.discount || 'Descuento'} {cart.cupon ? `(${cart.cupon})` : ''}</span>
+                <strong>- S/ {toNumber(cart.descuento).toFixed(2)}</strong>
+              </div>
+            )}
+
             <div className="summary-total">
               <span>{t.total}</span>
               <strong>S/ {toNumber(cart.total).toFixed(2)}</strong>
@@ -203,6 +224,26 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
             </button>
             <button className="btn-ghost" onClick={() => onNavigate('cart')}>{t.backToCart || 'Volver al carrito'}</button>
           </aside>
+        </div>
+      )}
+
+      {paymentStatus !== 'idle' && (
+        <div className="payment-overlay" role="status" aria-live="polite">
+          <div className="payment-modal panel-card">
+            {paymentStatus === 'processing' ? (
+              <>
+                <div className="payment-spinner" />
+                <h2>{t.processingPayment || 'Procesando pago...'}</h2>
+                <p>{t.fakeGatewayInfo || 'Conectando con pasarela simulada de Monolith.'}</p>
+              </>
+            ) : (
+              <>
+                <div className="payment-approved">✅</div>
+                <h2>{t.paymentApproved || 'Pago aprobado'}</h2>
+                <p>{t.creatingOrder || 'Confirmando tu pedido...'}</p>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

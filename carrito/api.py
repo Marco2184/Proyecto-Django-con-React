@@ -7,7 +7,7 @@ from productos.models import Producto, Categoria
 from usuarios.models import DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 from productos.serializers import ProductoListSerializer
 from productos.api import exclude_adult_content
-from .models import Carrito, ItemCarrito
+from .models import Carrito, ItemCarrito, CUPONES_DISPONIBLES
 
 
 def _get_carrito(user):
@@ -80,6 +80,9 @@ def _cart_payload(carrito, mensajes=None, request=None):
             plataformas.add(plataforma.nombre)
     return {
         'items': CartItemSerializer(items, many=True, context={'request': request}).data,
+        'subtotal': str(carrito.subtotal),
+        'cupon': carrito.cupon,
+        'descuento': str(carrito.descuento),
         'total': str(carrito.total),
         'cantidad_items': carrito.cantidad_items,
         'vacio': carrito.vacio,
@@ -154,7 +157,41 @@ def cart_item(request, item_id):
 def cart_clear(request):
     carrito = _get_carrito(request.user)
     carrito.itemcarrito_set.all().delete()
+    carrito.codigo_cupon = ''
+    carrito.save(update_fields=['codigo_cupon', 'actualizado'])
     return Response(_cart_payload(carrito, request=request))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cart_apply_coupon(request):
+    carrito = _get_carrito(request.user)
+    _normalize_carrito(carrito)
+
+    if carrito.vacio:
+        carrito.codigo_cupon = ''
+        carrito.save(update_fields=['codigo_cupon', 'actualizado'])
+        return Response({'detail': 'No puedes aplicar un cupón porque el carrito está vacío.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    codigo = str(request.data.get('codigo', '')).strip().upper()
+    if not codigo:
+        return Response({'detail': 'Ingresa un código de descuento.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if codigo not in CUPONES_DISPONIBLES:
+        return Response({'detail': 'Código de descuento inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    carrito.codigo_cupon = codigo
+    carrito.save(update_fields=['codigo_cupon', 'actualizado'])
+    return Response(_cart_payload(carrito, mensajes=[f'Cupón {codigo} aplicado correctamente.'], request=request))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cart_remove_coupon(request):
+    carrito = _get_carrito(request.user)
+    carrito.codigo_cupon = ''
+    carrito.save(update_fields=['codigo_cupon', 'actualizado'])
+    return Response(_cart_payload(carrito, mensajes=['Cupón removido correctamente.'], request=request))
 
 
 @api_view(['POST'])
@@ -274,6 +311,8 @@ def cart_checkout(request):
         )
 
         carrito.itemcarrito_set.all().delete()
+        carrito.codigo_cupon = ''
+        carrito.save(update_fields=['codigo_cupon', 'actualizado'])
 
     return Response({
         'message': 'Pedido creado correctamente.',

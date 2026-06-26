@@ -16,6 +16,7 @@ import Checkout from './pages/Checkout'
 import MisPedidos from './pages/MisPedidos'
 import DetallePedido from './pages/DetallePedido'
 import PedidoConfirmado from './pages/PedidoConfirmado'
+import AdminDashboard from './pages/AdminDashboard'
 import { api, bootstrapAuth, setAuthToken } from './services/api'
 import { auth } from './services/firebase'
 import { dict } from './i18n'
@@ -25,6 +26,7 @@ function readRoute() {
   if (path.startsWith('/verify/')) return { page: 'verify', token: path.split('/')[2] }
   if (path.startsWith('/reset-password/')) return { page: 'reset', token: path.split('/')[2] }
   if (path.startsWith('/producto/')) return { page: 'detail', productId: path.split('/')[2] }
+  if (path.startsWith('/admin')) return { page: 'admin' }
   return { page: 'catalog' }
 }
 
@@ -116,6 +118,8 @@ function App() {
 
     if (nextPage === 'detail' && payload.productId) {
       window.history.pushState({}, '', `/producto/${payload.productId}`)
+    } else if (nextPage === 'admin') {
+      window.history.pushState({}, '', '/admin')
     } else if (!['verify', 'reset'].includes(nextPage)) {
       window.history.pushState({}, '', '/')
     }
@@ -193,6 +197,10 @@ function App() {
 
       {page === 'detallePedido' && (
         <DetallePedido t={t} user={user} orderId={orderId} onNavigate={navigate} />
+      )}
+
+      {page === 'admin' && (
+        <AdminDashboard t={t} user={user} onNavigate={navigate} />
       )}
 
       {page === 'profile' && (
