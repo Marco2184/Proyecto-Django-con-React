@@ -15,24 +15,28 @@ nombre = os.environ.get("DJANGO_SUPERUSER_NOMBRE", "Administrador Monolith")
 if not password:
     raise ValueError("Falta DJANGO_SUPERUSER_PASSWORD en las variables de entorno de Render.")
 
-# Buscar usuario por correo
 user = Usuario.objects.filter(email=email).first()
 
-# Si no existe, crearlo con los campos obligatorios de tu modelo
 if not user:
     user = Usuario.objects.create_user(
         email=email,
         nombre=nombre,
-        password=password
+        password=password,
     )
+    print(f"Superusuario creado: {email}")
+else:
+    print(f"Superusuario encontrado: {email}")
 
-# Asegurar permisos de administrador
 user.nombre = nombre
 user.email = email
+user.is_active = True
 user.is_staff = True
 user.is_superuser = True
-user.is_active = True
+
+# Mantén esta línea mientras necesitas recuperar/reactivar la cuenta.
+# Luego puedes quitarla si no quieres que Render restablezca la contraseña en cada deploy.
 user.set_password(password)
+
 user.save()
 
-print(f"Superusuario listo: {email}")
+print(f"Superusuario activo y con permisos verificados: {email}")

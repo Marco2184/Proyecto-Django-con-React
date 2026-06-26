@@ -105,6 +105,34 @@ def _money(value):
     return str(value or Decimal('0.00'))
 
 
+def _payload_bool_false(data, field):
+    """
+    Detecta False aunque venga como booleano real, string o número.
+    Sirve para bloquear intentos de autodesactivación desde el panel admin.
+    """
+    if field not in data:
+        return False
+
+    value = data.get(field)
+
+    if value is False:
+        return True
+    if value in (0, '0'):
+        return True
+    if isinstance(value, str) and value.strip().lower() in {'false', 'no', 'off'}:
+        return True
+
+    return False
+
+
+def _active_admins_count():
+    return Usuario.objects.filter(
+        is_active=True,
+        is_staff=True,
+        is_superuser=True,
+    ).count()
+
+
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def admin_dashboard(request):
@@ -242,8 +270,28 @@ def admin_users(request):
         except Usuario.DoesNotExist:
             return Response({'detail': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if usuario == request.user and request.data.get('is_staff') is False:
-            return Response({'detail': 'No puedes quitarte el rol administrador a ti mismo.'}, status=status.HTTP_400_BAD_REQUEST)
+        es_mi_usuario = usuario.pk == request.user.pk
+        intenta_desactivar = _payload_bool_false(request.data, 'is_active') or _payload_bool_false(request.data, 'cuenta_activa')
+        intenta_quitar_admin = _payload_bool_false(request.data, 'is_staff') or _payload_bool_false(request.data, 'is_superuser')
+
+        if es_mi_usuario and intenta_desactivar:
+            return Response(
+                {'detail': 'No puedes desactivar tu propia cuenta de administrador.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if es_mi_usuario and intenta_quitar_admin:
+            return Response(
+                {'detail': 'No puedes quitarte tus propios permisos de administrador.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if (usuario.is_staff or usuario.is_superuser) and (intenta_desactivar or intenta_quitar_admin):
+            if _active_admins_count() <= 1:
+                return Response(
+                    {'detail': 'No puedes dejar el sistema sin administradores activos.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         serializer = AdminUsuarioSerializer(usuario, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
