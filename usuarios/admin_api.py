@@ -125,13 +125,46 @@ def _payload_bool_false(data, field):
     return False
 
 
-def _active_admins_count():
-    return Usuario.objects.filter(
+def _payload_bool_value(data, field, default=None):
+    """
+    Lee booleanos enviados por el frontend aunque lleguen como boolean,
+    string o número. Devuelve default si el campo no llegó en el payload.
+    """
+    if field not in data:
+        return default
+
+    value = data.get(field)
+
+    if isinstance(value, bool):
+        return value
+    if value in (1, '1'):
+        return True
+    if value in (0, '0'):
+        return False
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {'true', 'yes', 'on', 'si', 'sí'}:
+            return True
+        if normalized in {'false', 'no', 'off'}:
+            return False
+
+    return bool(value)
+
+
+def _active_admins_count(exclude_pk=None):
+    """
+    Cuenta administradores reales disponibles para operar el panel.
+    En DRF IsAdminUser basta con is_staff=True; is_superuser no siempre
+    representa el botón Admin del frontend.
+    """
+    qs = Usuario.objects.filter(
         is_active=True,
         cuenta_activa=True,
         is_staff=True,
-        is_superuser=True,
-    ).count()
+    )
+    if exclude_pk is not None:
+        qs = qs.exclude(pk=exclude_pk)
+    return qs.count()
 
 
 def _is_deleted_user(usuario):
@@ -309,8 +342,21 @@ def admin_users(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if (usuario.is_staff or usuario.is_superuser) and (intenta_desactivar or intenta_quitar_admin):
-            if _active_admins_count() <= 1:
+        # Solo bloquea si el usuario objetivo realmente es un admin activo
+        # y la modificación lo dejaría sin capacidad de administrar.
+        admin_activo_actual = bool(usuario.is_active and usuario.cuenta_activa and usuario.is_staff)
+
+        nuevo_is_active = _payload_bool_value(request.data, 'is_active', usuario.is_active)
+        nueva_cuenta_activa = _payload_bool_value(request.data, 'cuenta_activa', usuario.cuenta_activa)
+        nuevo_is_staff = _payload_bool_value(request.data, 'is_staff', usuario.is_staff)
+        nuevo_is_superuser = _payload_bool_value(request.data, 'is_superuser', usuario.is_superuser)
+
+        seguira_siendo_admin_activo = bool(
+            nuevo_is_active and nueva_cuenta_activa and (nuevo_is_staff or nuevo_is_superuser)
+        )
+
+        if admin_activo_actual and not seguira_siendo_admin_activo:
+            if _active_admins_count(exclude_pk=usuario.pk) <= 0:
                 return Response(
                     {'detail': 'No puedes dejar el sistema sin administradores activos.'},
                     status=status.HTTP_400_BAD_REQUEST,
