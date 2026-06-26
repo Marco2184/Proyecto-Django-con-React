@@ -65,6 +65,9 @@ export function getApiError(error) {
   }
 
   if (typeof data === 'string') {
+    if (data.trim().startsWith('<!doctype html') || data.trim().startsWith('<html')) {
+      return `Error interno del servidor${status ? ` (${status})` : ''}. Revisa los logs de Render.`
+    }
     return data
   }
 

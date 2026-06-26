@@ -111,7 +111,6 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
 
       setCart(data)
       setCouponCode(data.cupon || couponCode.trim().toUpperCase())
-      setNotice({ type: 'success', key: 'couponApplied', extra: data.cupon || couponCode.trim().toUpperCase() })
     } catch (err) {
       setCouponError(getApiError(err))
     } finally {
@@ -129,7 +128,6 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
 
       setCart(data)
       setCouponCode('')
-      setNotice({ type: 'success', key: 'couponRemoved' })
     } catch (err) {
       setCouponError(getApiError(err))
     } finally {
