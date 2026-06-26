@@ -22,7 +22,7 @@ class AdminUsuarioSerializer(serializers.ModelSerializer):
             'cuenta_activa', 'is_active', 'is_staff', 'is_superuser',
             'fecha_registro', 'pedidos_count',
         ]
-        read_only_fields = ['id', 'email', 'is_superuser', 'fecha_registro', 'pedidos_count']
+        read_only_fields = ['id', 'email', 'fecha_registro', 'pedidos_count']
 
 
 class AdminPedidoItemSerializer(serializers.ModelSerializer):
@@ -128,9 +128,26 @@ def _payload_bool_false(data, field):
 def _active_admins_count():
     return Usuario.objects.filter(
         is_active=True,
+        cuenta_activa=True,
         is_staff=True,
         is_superuser=True,
     ).count()
+
+
+def _is_deleted_user(usuario):
+    """
+    Detecta cuentas marcadas como eliminadas/anónimas para impedir cambios
+    desde el panel administrativo. En Monolith las cuentas eliminadas suelen
+    conservarse para no romper pedidos históricos.
+    """
+    email = (usuario.email or '').strip().lower()
+    nombre = (usuario.nombre or '').strip().lower()
+
+    return (
+        email.endswith('@monolith.void')
+        or email.startswith('deleted_')
+        or nombre in {'usuario eliminado', 'deleted user', 'usuario_eliminado'}
+    )
 
 
 @api_view(['GET'])
@@ -270,6 +287,12 @@ def admin_users(request):
         except Usuario.DoesNotExist:
             return Response({'detail': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
+        if _is_deleted_user(usuario):
+            return Response(
+                {'detail': 'No puedes modificar una cuenta eliminada.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         es_mi_usuario = usuario.pk == request.user.pk
         intenta_desactivar = _payload_bool_false(request.data, 'is_active') or _payload_bool_false(request.data, 'cuenta_activa')
         intenta_quitar_admin = _payload_bool_false(request.data, 'is_staff') or _payload_bool_false(request.data, 'is_superuser')
@@ -295,7 +318,23 @@ def admin_users(request):
 
         serializer = AdminUsuarioSerializer(usuario, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        usuario = serializer.save()
+
+        # Si se cambia el rol administrador, ambos permisos deben quedar sincronizados.
+        # Así el botón del frontend realmente puede dar o quitar admin a otros usuarios.
+        update_fields = []
+        if 'is_staff' in request.data:
+            usuario.is_staff = bool(request.data.get('is_staff'))
+            usuario.is_superuser = bool(request.data.get('is_staff'))
+            update_fields.extend(['is_staff', 'is_superuser'])
+        elif 'is_superuser' in request.data:
+            usuario.is_superuser = bool(request.data.get('is_superuser'))
+            usuario.is_staff = bool(request.data.get('is_superuser'))
+            update_fields.extend(['is_staff', 'is_superuser'])
+
+        if update_fields:
+            usuario.save(update_fields=update_fields)
+
         return Response(AdminUsuarioSerializer(usuario).data)
 
     q = (request.query_params.get('q') or '').strip()

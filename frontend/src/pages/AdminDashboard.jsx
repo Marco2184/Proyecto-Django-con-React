@@ -26,6 +26,19 @@ function flattenCategories(categorias = []) {
   return rows
 }
 
+function isDeletedUser(row) {
+  const email = String(row?.email || '').trim().toLowerCase()
+  const nombre = String(row?.nombre || '').trim().toLowerCase()
+
+  return (
+    email.endsWith('@monolith.void') ||
+    email.startsWith('deleted_') ||
+    nombre === 'usuario eliminado' ||
+    nombre === 'deleted user' ||
+    nombre === 'usuario_eliminado'
+  )
+}
+
 export default function AdminDashboard({ user, onNavigate, t }) {
   const [tab, setTab] = useState('resumen')
   const [dashboard, setDashboard] = useState(null)
@@ -235,10 +248,21 @@ export default function AdminDashboard({ user, onNavigate, t }) {
   }
 
   const updateUser = async (targetUser, changes) => {
-    if (targetUser.id === user.id && changes.is_staff === false) {
+    if (isDeletedUser(targetUser)) {
+      setError('No puedes modificar una cuenta eliminada.')
+      return
+    }
+
+    if (targetUser.id === user.id && (changes.is_staff === false || changes.is_superuser === false)) {
       setError('No puedes quitarte el rol administrador a ti mismo.')
       return
     }
+
+    if (targetUser.id === user.id && (changes.is_active === false || changes.cuenta_activa === false)) {
+      setError('No puedes desactivar tu propia cuenta de administrador.')
+      return
+    }
+
     setSaving(true)
     setError('')
     try {
@@ -425,15 +449,41 @@ export default function AdminDashboard({ user, onNavigate, t }) {
             <table className="admin-table">
               <thead><tr><th>Nombre</th><th>Email</th><th>Pedidos</th><th>Activo</th><th>Admin</th></tr></thead>
               <tbody>
-                {users.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.nombre}</td>
-                    <td>{row.email}</td>
-                    <td>{row.pedidos_count || 0}</td>
-                    <td><button className={row.cuenta_activa ? 'admin-toggle on' : 'admin-toggle'} onClick={() => updateUser(row, { cuenta_activa: !row.cuenta_activa, is_active: !row.cuenta_activa })}>{row.cuenta_activa ? 'Activo' : 'Inactivo'}</button></td>
-                    <td><button className={row.is_staff ? 'admin-toggle on' : 'admin-toggle'} onClick={() => updateUser(row, { is_staff: !row.is_staff })}>{row.is_staff ? 'Admin' : 'Usuario'}</button></td>
-                  </tr>
-                ))}
+                {users.map((row) => {
+                  const deleted = isDeletedUser(row)
+                  const isSelf = row.id === user.id
+                  const isAdmin = Boolean(row.is_staff || row.is_superuser)
+                  const canToggleActive = !deleted && !isSelf
+                  const canToggleAdmin = !deleted && !isSelf
+
+                  return (
+                    <tr key={row.id} className={deleted ? 'admin-row-disabled' : ''}>
+                      <td>{row.nombre}</td>
+                      <td>{row.email}</td>
+                      <td>{row.pedidos_count || 0}</td>
+                      <td>
+                        <button
+                          className={row.cuenta_activa ? 'admin-toggle on' : 'admin-toggle'}
+                          disabled={!canToggleActive || saving}
+                          onClick={() => updateUser(row, { cuenta_activa: !row.cuenta_activa, is_active: !row.cuenta_activa })}
+                          title={deleted ? 'Cuenta eliminada: no se puede modificar.' : isSelf ? 'No puedes desactivar tu propia cuenta.' : ''}
+                        >
+                          {deleted ? 'Eliminado' : row.cuenta_activa ? 'Activo' : 'Inactivo'}
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          className={isAdmin ? 'admin-toggle on' : 'admin-toggle'}
+                          disabled={!canToggleAdmin || saving}
+                          onClick={() => updateUser(row, { is_staff: !isAdmin, is_superuser: !isAdmin })}
+                          title={deleted ? 'Cuenta eliminada: no se puede modificar.' : isSelf ? 'No puedes quitarte tu propio rol admin.' : ''}
+                        >
+                          {deleted ? 'Bloqueado' : isAdmin ? 'Admin' : 'Usuario'}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
