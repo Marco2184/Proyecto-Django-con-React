@@ -29,14 +29,23 @@ else:
 
 user.nombre = nombre
 user.email = email
+
+# IMPORTANTE:
+# Tu login valida ambas banderas.
 user.is_active = True
+user.cuenta_activa = True
+
+# Permisos de administrador.
 user.is_staff = True
 user.is_superuser = True
 
-# Mantén esta línea mientras necesitas recuperar/reactivar la cuenta.
-# Luego puedes quitarla si no quieres que Render restablezca la contraseña en cada deploy.
+# Para que no bloquee por verificación interna de Django.
+user.email_verificado = True
+
+# Mantén esto mientras estás recuperando la cuenta.
 user.set_password(password)
 
 user.save()
 
-print(f"Superusuario activo y con permisos verificados: {email}")
+print(f"Superusuario reactivado completamente: {email}")
+print(f"is_active={user.is_active}, cuenta_activa={user.cuenta_activa}, is_staff={user.is_staff}, is_superuser={user.is_superuser}")
