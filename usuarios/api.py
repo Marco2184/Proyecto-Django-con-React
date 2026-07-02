@@ -639,169 +639,304 @@ def order_receipt(request, pk):
         amount = Decimal(str(value or 0))
         return f"S/ {amount:.2f}"
 
-    buffer = BytesIO()
-    filename = f"comprobante-{pedido.numero}.pdf"
+    def clean(value, default="-"):
+        value = str(value or "").strip()
+        return value if value else default
 
+    def p(text, style):
+        return Paragraph(clean(text), style)
+
+    items = list(pedido.items.all())
+    subtotal = sum(Decimal(str(item.subtotal or 0)) for item in items)
+    total = Decimal(str(pedido.monto_total or 0))
+    descuento = subtotal - total
+    if descuento < 0:
+        descuento = Decimal("0.00")
+
+    # IGV referencial incluido en el total. No se suma aparte para no alterar el monto pagado.
+    igv_incluido = (total * Decimal("18") / Decimal("118")) if total else Decimal("0.00")
+
+    fecha_emision = timezone.localtime(pedido.fecha)
+    fecha_vencimiento = fecha_emision.date()
+    cliente = f"{request.user.nombre} &lt;{request.user.email}&gt;"
+    numero = pedido.numero or f"MNL-{pedido.pk:05d}"
+    filename = f"comprobante-{numero}.pdf"
+
+    buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=16 * mm,
-        leftMargin=16 * mm,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
         topMargin=14 * mm,
         bottomMargin=16 * mm,
-        title=f"Comprobante {pedido.numero}",
+        title=f"Comprobante {numero}",
         author="Monolith Gaming Store",
     )
 
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(
-        name="MonoTitle",
+        name="Brand",
         parent=styles["Title"],
         fontName="Helvetica-Bold",
-        fontSize=22,
-        leading=26,
+        fontSize=24,
+        leading=28,
         textColor=colors.HexColor("#00B936"),
-        alignment=1,
-        spaceAfter=6,
+        alignment=0,
+        spaceAfter=4,
     ))
     styles.add(ParagraphStyle(
-        name="MonoSubtitle",
+        name="InvoiceTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=19,
+        leading=22,
+        textColor=colors.HexColor("#111111"),
+        alignment=2,
+        spaceAfter=2,
+    ))
+    styles.add(ParagraphStyle(
+        name="InvoiceNumber",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=11,
-        leading=14,
-        textColor=colors.HexColor("#1F2937"),
-        alignment=1,
-        spaceAfter=10,
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor("#333333"),
+        alignment=2,
     ))
     styles.add(ParagraphStyle(
-        name="SectionTitle",
-        parent=styles["Heading2"],
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=15,
-        textColor=colors.HexColor("#00B936"),
-        spaceBefore=8,
-        spaceAfter=6,
-    ))
-    styles.add(ParagraphStyle(
-        name="SmallMuted",
+        name="Small",
         parent=styles["Normal"],
         fontSize=8,
         leading=10,
+        textColor=colors.HexColor("#505050"),
+    ))
+    styles.add(ParagraphStyle(
+        name="Tiny",
+        parent=styles["Normal"],
+        fontSize=7,
+        leading=9,
         textColor=colors.HexColor("#666666"),
     ))
     styles.add(ParagraphStyle(
         name="Cell",
         parent=styles["Normal"],
-        fontSize=9,
-        leading=11,
+        fontSize=8.5,
+        leading=10.5,
+        textColor=colors.HexColor("#111111"),
     ))
     styles.add(ParagraphStyle(
         name="CellBold",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=9,
-        leading=11,
+        fontSize=8.5,
+        leading=10.5,
+        textColor=colors.HexColor("#111111"),
+    ))
+    styles.add(ParagraphStyle(
+        name="TableHead",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=9,
+        textColor=colors.white,
+    ))
+    styles.add(ParagraphStyle(
+        name="GreenSection",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=12,
+        textColor=colors.HexColor("#00B936"),
+        spaceBefore=8,
+        spaceAfter=5,
+    ))
+    styles.add(ParagraphStyle(
+        name="Terms",
+        parent=styles["Normal"],
+        fontSize=7.3,
+        leading=9,
+        textColor=colors.HexColor("#5A5A5A"),
     ))
 
     story = []
-    story.append(Paragraph("MONOLITH", styles["MonoTitle"]))
-    story.append(Paragraph("COMPROBANTE DE COMPRA - PAGO SIMULADO", styles["MonoSubtitle"]))
-    story.append(Paragraph(
-        "Este documento representa el comprobante generado por la tienda virtual Monolith. "
-        "El pago mostrado es simulado para fines academicos y de demostracion del flujo de compra.",
-        styles["SmallMuted"],
-    ))
+
+    # Encabezado similar a factura: marca a la izquierda, tipo y numero a la derecha.
+    header = Table([
+        [
+            [
+                Paragraph("MONOLITH", styles["Brand"]),
+                Paragraph("Gaming Store", styles["Small"]),
+                Paragraph("Comprobante generado automaticamente por el sistema", styles["Tiny"]),
+            ],
+            [
+                Paragraph("FACTURA", styles["InvoiceTitle"]),
+                Paragraph(f"#{pedido.pk}", styles["InvoiceNumber"]),
+            ],
+        ]
+    ], colWidths=[102 * mm, 72 * mm])
+    header.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    story.append(header)
     story.append(Spacer(1, 8))
 
-    cliente = f"{request.user.nombre} &lt;{request.user.email}&gt;"
-    datos = [
-        [Paragraph("Nro. de pedido", styles["CellBold"]), Paragraph(pedido.numero or "-", styles["Cell"])],
-        [Paragraph("Fecha de emision", styles["CellBold"]), Paragraph(pedido.fecha.strftime("%d/%m/%Y %H:%M"), styles["Cell"])],
-        [Paragraph("Cliente", styles["CellBold"]), Paragraph(cliente, styles["Cell"])],
-        [Paragraph("Estado del pedido", styles["CellBold"]), Paragraph(pedido.estado.upper(), styles["Cell"])],
-        [Paragraph("Pago", styles["CellBold"]), Paragraph(f"{pedido.metodo_pago} / {pedido.estado_pago}", styles["Cell"])],
-        [Paragraph("Referencia", styles["CellBold"]), Paragraph(pedido.referencia_pago or "-", styles["Cell"])],
-        [Paragraph("Direccion", styles["CellBold"]), Paragraph(pedido.direccion_texto or "-", styles["Cell"])],
-        [Paragraph("Entrega estimada", styles["CellBold"]), Paragraph(str(pedido.fecha_estimada_entrega or "-"), styles["Cell"])],
+    # Datos superiores, con distribucion parecida a la referencia.
+    left_info = [
+        [Paragraph("Cliente:", styles["CellBold"]), Paragraph(cliente, styles["Cell"])],
+        [Paragraph("Cobrar a:", styles["CellBold"]), Paragraph("Monolith Gaming Store", styles["Cell"])],
+        [Paragraph("Pago:", styles["CellBold"]), Paragraph(f"{pedido.metodo_pago} / {pedido.estado_pago}", styles["Cell"])],
+        [Paragraph("Referencia:", styles["CellBold"]), Paragraph(clean(pedido.referencia_pago), styles["Cell"])],
     ]
-
-    datos_table = Table(datos, colWidths=[42 * mm, 120 * mm])
-    datos_table.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#1F2937")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
-        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F3F4F6")),
+    left_table = Table(left_info, colWidths=[24 * mm, 80 * mm])
+    left_table.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 7),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
     ]))
-    story.append(datos_table)
-    story.append(Spacer(1, 10))
 
-    story.append(Paragraph("Detalle de productos", styles["SectionTitle"]))
-    productos = [[
-        Paragraph("Producto", styles["CellBold"]),
-        Paragraph("Cant.", styles["CellBold"]),
-        Paragraph("Precio", styles["CellBold"]),
-        Paragraph("Subtotal", styles["CellBold"]),
+    right_info = [
+        [Paragraph("Fecha:", styles["CellBold"]), Paragraph(fecha_emision.strftime("%d/%m/%Y"), styles["Cell"])],
+        [Paragraph("Condiciones de pago:", styles["CellBold"]), Paragraph("Pago simulado aprobado", styles["Cell"])],
+        [Paragraph("Fecha de vencimiento:", styles["CellBold"]), Paragraph(str(fecha_vencimiento), styles["Cell"])],
+        [Paragraph("Orden de Compra:", styles["CellBold"]), Paragraph(numero, styles["Cell"])],
+        [Paragraph("Saldo Adeudado:", styles["CellBold"]), Paragraph("S/ 0.00", styles["CellBold"])],
+    ]
+    right_table = Table(right_info, colWidths=[34 * mm, 36 * mm])
+    right_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+        ("BACKGROUND", (0, 4), (-1, 4), colors.HexColor("#F2F2F2")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]))
+
+    info = Table([[left_table, right_table]], colWidths=[104 * mm, 70 * mm])
+    info.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.append(info)
+    story.append(Spacer(1, 12))
+
+    # Direccion y estado del pedido en una franja sobria.
+    state_box = Table([
+        [Paragraph("Estado del pedido", styles["CellBold"]), Paragraph(pedido.estado.upper(), styles["Cell"])],
+        [Paragraph("Direccion", styles["CellBold"]), Paragraph(clean(pedido.direccion_texto), styles["Cell"])],
+        [Paragraph("Entrega estimada", styles["CellBold"]), Paragraph(clean(pedido.fecha_estimada_entrega), styles["Cell"])],
+    ], colWidths=[36 * mm, 138 * mm])
+    state_box.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#BDBDBD")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D8D8D8")),
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F6F6F6")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story.append(state_box)
+    story.append(Spacer(1, 12))
+
+    # Detalle de articulos, inspirado en la segunda referencia.
+    product_rows = [[
+        Paragraph("Articulo", styles["TableHead"]),
+        Paragraph("Cantidad", styles["TableHead"]),
+        Paragraph("Tasa", styles["TableHead"]),
+        Paragraph("Cantidad", styles["TableHead"]),
     ]]
 
-    for item in pedido.items.all():
-        productos.append([
-            Paragraph(item.producto_nombre, styles["Cell"]),
+    for item in items:
+        product_rows.append([
+            Paragraph(clean(item.producto_nombre), styles["Cell"]),
             Paragraph(str(item.cantidad), styles["Cell"]),
             Paragraph(money(item.precio_unitario), styles["Cell"]),
             Paragraph(money(item.subtotal), styles["Cell"]),
         ])
 
-    productos_table = Table(productos, colWidths=[88 * mm, 18 * mm, 28 * mm, 28 * mm], repeatRows=1)
-    productos_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#050505")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#00FF41")),
-        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#1F2937")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
+    if len(product_rows) == 1:
+        product_rows.append([
+            Paragraph("Sin productos", styles["Cell"]),
+            Paragraph("0", styles["Cell"]),
+            Paragraph("S/ 0.00", styles["Cell"]),
+            Paragraph("S/ 0.00", styles["Cell"]),
+        ])
+
+    products_table = Table(product_rows, colWidths=[100 * mm, 24 * mm, 25 * mm, 25 * mm], repeatRows=1)
+    products_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#111111")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#202020")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D2D2D2")),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
-    story.append(productos_table)
+    story.append(products_table)
     story.append(Spacer(1, 10))
 
-    resumen = [
-        [Paragraph("Total pagado", styles["CellBold"]), Paragraph(money(pedido.monto_total), styles["CellBold"])],
+    total_data = [
+        [Paragraph("Subtotal:", styles["Cell"]), Paragraph(money(subtotal), styles["Cell"])],
     ]
-    resumen_table = Table(resumen, colWidths=[120 * mm, 42 * mm], hAlign="RIGHT")
-    resumen_table.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#00B936")),
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#ECFDF3")),
-        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#065F2C")),
-        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-        ("TOPPADDING", (0, 0), (-1, -1), 7),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-    ]))
-    story.append(resumen_table)
-    story.append(Spacer(1, 12))
+    if descuento > 0:
+        total_data.append([Paragraph("Descuento aplicado:", styles["Cell"]), Paragraph(f"- {money(descuento)}", styles["Cell"])])
+    total_data.extend([
+        [Paragraph("IGV incluido (18%):", styles["Cell"]), Paragraph(money(igv_incluido), styles["Cell"])],
+        [Paragraph("Total:", styles["CellBold"]), Paragraph(money(total), styles["CellBold"])],
+        [Paragraph("Cantidad Pagada:", styles["CellBold"]), Paragraph(money(total), styles["CellBold"])],
+    ])
 
-    story.append(Paragraph("Gracias por comprar en Monolith Gaming Store.", styles["SmallMuted"]))
-    story.append(Paragraph("Documento generado automaticamente por el sistema.", styles["SmallMuted"]))
+    totals_table = Table(total_data, colWidths=[45 * mm, 34 * mm], hAlign="RIGHT")
+    totals_table.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+        ("LINEABOVE", (0, -2), (-1, -2), 0.6, colors.HexColor("#111111")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#E9FFF0")),
+        ("TEXTCOLOR", (0, -1), (-1, -1), colors.HexColor("#006B22")),
+        ("BOX", (0, -1), (-1, -1), 0.6, colors.HexColor("#00B936")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ]))
+    story.append(totals_table)
+    story.append(Spacer(1, 18))
+
+    story.append(Paragraph("Pago:", styles["CellBold"]))
+    story.append(Paragraph(
+        "El pago correspondiente a esta compra ha sido completado exitosamente mediante una operacion simulada. "
+        "No se requiere ninguna accion adicional por parte del cliente en relacion con este pago.",
+        styles["Terms"],
+    ))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("Terminos:", styles["CellBold"]))
+    story.append(Paragraph(
+        "Este comprobante representa una demostracion academica del flujo de compra de Monolith. "
+        "Los productos, importes y estado del pago son generados por el sistema para evidenciar el proceso de comercio electronico. "
+        "Para devoluciones o cambios dentro de una implementacion real, el cliente deberia presentar este comprobante y cumplir las politicas de la tienda.",
+        styles["Terms"],
+    ))
 
     def footer(canvas, doc_obj):
         canvas.saveState()
         canvas.setStrokeColor(colors.HexColor("#00B936"))
         canvas.setLineWidth(0.5)
-        canvas.line(16 * mm, 12 * mm, 194 * mm, 12 * mm)
+        canvas.line(18 * mm, 12 * mm, 192 * mm, 12 * mm)
         canvas.setFont("Helvetica", 7)
         canvas.setFillColor(colors.HexColor("#555555"))
-        canvas.drawString(16 * mm, 8 * mm, "Monolith Gaming Store - comprobante generado por sistema")
-        canvas.drawRightString(194 * mm, 8 * mm, f"Pagina {doc_obj.page}")
+        canvas.drawString(18 * mm, 8 * mm, "Monolith Gaming Store - comprobante de compra")
+        canvas.drawRightString(192 * mm, 8 * mm, f"Pagina {doc_obj.page}")
         canvas.restoreState()
 
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
