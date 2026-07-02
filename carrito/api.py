@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db import transaction
 from rest_framework import serializers, status
@@ -9,6 +11,25 @@ from usuarios.models import DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 from productos.serializers import ProductoListSerializer
 from productos.api import exclude_adult_content
 from .models import Carrito, ItemCarrito, CUPONES_DISPONIBLES
+
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_product_image(producto):
+    """Devuelve una imagen segura para PedidoItem.producto_imagen.
+
+    Ese campo es URLField y en la BD suele tener límite de 200 caracteres.
+    Algunas URLs externas de juegos son largas; si se guardan completas,
+    PostgreSQL puede lanzar DataError y romper el checkout con error 500.
+    """
+    image = getattr(producto, 'imagen_url', '') or ''
+    if not image and getattr(producto, 'imagen_principal', None):
+        try:
+            image = producto.imagen_principal.url or ''
+        except Exception:
+            image = ''
+    return str(image)[:200]
 
 
 def _get_carrito(user):
@@ -297,7 +318,7 @@ def cart_checkout(request):
                     pedido=pedido,
                     producto=producto,
                     producto_nombre=producto.nombre,
-                    producto_imagen=getattr(producto, 'imagen_url', '') or '',
+                    producto_imagen=_safe_product_image(producto),
                     cantidad=item.cantidad,
                     precio_unitario=producto.precio,
                     subtotal=item.subtotal,
@@ -352,6 +373,7 @@ def cart_checkout(request):
             },
         }, status=status.HTTP_201_CREATED)
     except Exception as exc:
+        logger.exception('Error interno en cart_checkout para usuario_id=%s', getattr(request.user, 'id', None))
         detail = 'No se pudo completar el checkout por un error interno del servidor.'
         if settings.DEBUG:
             detail = f'{detail} Detalle: {exc}'
