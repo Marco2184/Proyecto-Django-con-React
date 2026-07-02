@@ -43,15 +43,47 @@ export default function DetallePedido({ t, user, orderId, onNavigate }) {
     }
   }
 
+  const getReceiptPdf = async () => {
+    const { data } = await api.get(`/profile/orders/${orderId}/receipt/`, { responseType: 'blob' })
+    return new Blob([data], { type: 'application/pdf' })
+  }
+
   const downloadReceipt = async () => {
     try {
-      const { data } = await api.get(`/profile/orders/${orderId}/receipt/`, { responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([data], { type: 'text/plain' }))
+      const pdf = await getReceiptPdf()
+      const url = window.URL.createObjectURL(pdf)
       const link = document.createElement('a')
       link.href = url
-      link.download = `comprobante-${order.numero}.txt`
+      link.download = `comprobante-${order.numero}.pdf`
+      document.body.appendChild(link)
       link.click()
+      link.remove()
       window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setError(getApiError(err))
+    }
+  }
+
+  const printReceipt = async () => {
+    try {
+      const pdf = await getReceiptPdf()
+      const url = window.URL.createObjectURL(pdf)
+      const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
+
+      if (!printWindow) {
+        setError('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para imprimir el comprobante.')
+        window.URL.revokeObjectURL(url)
+        return
+      }
+
+      window.setTimeout(() => {
+        try {
+          printWindow.focus()
+          printWindow.print()
+        } finally {
+          window.setTimeout(() => window.URL.revokeObjectURL(url), 60000)
+        }
+      }, 900)
     } catch (err) {
       setError(getApiError(err))
     }
@@ -103,7 +135,7 @@ export default function DetallePedido({ t, user, orderId, onNavigate }) {
         <aside className="panel-card checkout-summary">
           <h2>Acciones</h2>
           <button className="btn-neon" onClick={downloadReceipt}>Descargar comprobante</button>
-          <button className="btn-ghost" onClick={() => window.print()}>Imprimir</button>
+          <button className="btn-ghost" onClick={printReceipt}>Imprimir</button>
           {order.puede_cancelar ? (
             <button className="btn-ghost danger" onClick={cancelOrder}>Cancelar pedido</button>
           ) : (

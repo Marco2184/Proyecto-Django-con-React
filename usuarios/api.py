@@ -1,8 +1,11 @@
 import uuid
+from io import BytesIO
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail
+from django.http import HttpResponse
 from django.utils.translation import activate
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
@@ -15,6 +18,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from decouple import config
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 from .models import Usuario, DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
 
@@ -97,8 +106,6 @@ def _user_payload(user):
         "telefono": user.telefono,
         "email_verificado": user.email_verificado,
         "fecha_registro": user.fecha_registro,
-        "is_staff": user.is_staff,
-        "is_superuser": user.is_superuser,
     }
 
 
@@ -624,36 +631,186 @@ def cancel_order(request, pk):
 @permission_classes([IsAuthenticated])
 def order_receipt(request, pk):
     try:
-        pedido = request.user.pedidos.prefetch_related("items").get(pk=pk)
+        pedido = request.user.pedidos.prefetch_related("items", "timeline").get(pk=pk)
     except Pedido.DoesNotExist:
         return Response({"detail": "Pedido no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    lines = [
-        "MONOLITH GAMING STORE",
-        f"Comprobante: {pedido.numero}",
-        f"Fecha: {pedido.fecha.strftime('%d/%m/%Y %H:%M')}",
-        f"Cliente: {request.user.nombre} <{request.user.email}>",
-        f"Estado del pedido: {pedido.estado}",
-        f"Pago: {pedido.metodo_pago} / {pedido.estado_pago}",
-        f"Referencia: {pedido.referencia_pago or '-'}",
-        "",
-        "Productos:",
+    def money(value):
+        amount = Decimal(str(value or 0))
+        return f"S/ {amount:.2f}"
+
+    buffer = BytesIO()
+    filename = f"comprobante-{pedido.numero}.pdf"
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=16 * mm,
+        leftMargin=16 * mm,
+        topMargin=14 * mm,
+        bottomMargin=16 * mm,
+        title=f"Comprobante {pedido.numero}",
+        author="Monolith Gaming Store",
+    )
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name="MonoTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=22,
+        leading=26,
+        textColor=colors.HexColor("#00B936"),
+        alignment=1,
+        spaceAfter=6,
+    ))
+    styles.add(ParagraphStyle(
+        name="MonoSubtitle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor("#1F2937"),
+        alignment=1,
+        spaceAfter=10,
+    ))
+    styles.add(ParagraphStyle(
+        name="SectionTitle",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        leading=15,
+        textColor=colors.HexColor("#00B936"),
+        spaceBefore=8,
+        spaceAfter=6,
+    ))
+    styles.add(ParagraphStyle(
+        name="SmallMuted",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#666666"),
+    ))
+    styles.add(ParagraphStyle(
+        name="Cell",
+        parent=styles["Normal"],
+        fontSize=9,
+        leading=11,
+    ))
+    styles.add(ParagraphStyle(
+        name="CellBold",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=11,
+    ))
+
+    story = []
+    story.append(Paragraph("MONOLITH", styles["MonoTitle"]))
+    story.append(Paragraph("COMPROBANTE DE COMPRA - PAGO SIMULADO", styles["MonoSubtitle"]))
+    story.append(Paragraph(
+        "Este documento representa el comprobante generado por la tienda virtual Monolith. "
+        "El pago mostrado es simulado para fines academicos y de demostracion del flujo de compra.",
+        styles["SmallMuted"],
+    ))
+    story.append(Spacer(1, 8))
+
+    cliente = f"{request.user.nombre} &lt;{request.user.email}&gt;"
+    datos = [
+        [Paragraph("Nro. de pedido", styles["CellBold"]), Paragraph(pedido.numero or "-", styles["Cell"])],
+        [Paragraph("Fecha de emision", styles["CellBold"]), Paragraph(pedido.fecha.strftime("%d/%m/%Y %H:%M"), styles["Cell"])],
+        [Paragraph("Cliente", styles["CellBold"]), Paragraph(cliente, styles["Cell"])],
+        [Paragraph("Estado del pedido", styles["CellBold"]), Paragraph(pedido.estado.upper(), styles["Cell"])],
+        [Paragraph("Pago", styles["CellBold"]), Paragraph(f"{pedido.metodo_pago} / {pedido.estado_pago}", styles["Cell"])],
+        [Paragraph("Referencia", styles["CellBold"]), Paragraph(pedido.referencia_pago or "-", styles["Cell"])],
+        [Paragraph("Direccion", styles["CellBold"]), Paragraph(pedido.direccion_texto or "-", styles["Cell"])],
+        [Paragraph("Entrega estimada", styles["CellBold"]), Paragraph(str(pedido.fecha_estimada_entrega or "-"), styles["Cell"])],
     ]
+
+    datos_table = Table(datos, colWidths=[42 * mm, 120 * mm])
+    datos_table.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#1F2937")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F3F4F6")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    story.append(datos_table)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("Detalle de productos", styles["SectionTitle"]))
+    productos = [[
+        Paragraph("Producto", styles["CellBold"]),
+        Paragraph("Cant.", styles["CellBold"]),
+        Paragraph("Precio", styles["CellBold"]),
+        Paragraph("Subtotal", styles["CellBold"]),
+    ]]
 
     for item in pedido.items.all():
-        lines.append(
-            f"- {item.producto_nombre} x{item.cantidad} | S/ {item.precio_unitario} | Subtotal S/ {item.subtotal}"
-        )
+        productos.append([
+            Paragraph(item.producto_nombre, styles["Cell"]),
+            Paragraph(str(item.cantidad), styles["Cell"]),
+            Paragraph(money(item.precio_unitario), styles["Cell"]),
+            Paragraph(money(item.subtotal), styles["Cell"]),
+        ])
 
-    lines += [
-        "",
-        f"Total: S/ {pedido.monto_total}",
-        f"Dirección: {pedido.direccion_texto or '-'}",
-        f"Entrega estimada: {pedido.fecha_estimada_entrega or '-'}",
+    productos_table = Table(productos, colWidths=[88 * mm, 18 * mm, 28 * mm, 28 * mm], repeatRows=1)
+    productos_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#050505")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#00FF41")),
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#1F2937")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D1D5DB")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    story.append(productos_table)
+    story.append(Spacer(1, 10))
+
+    resumen = [
+        [Paragraph("Total pagado", styles["CellBold"]), Paragraph(money(pedido.monto_total), styles["CellBold"])],
     ]
+    resumen_table = Table(resumen, colWidths=[120 * mm, 42 * mm], hAlign="RIGHT")
+    resumen_table.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#00B936")),
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#ECFDF3")),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#065F2C")),
+        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.append(resumen_table)
+    story.append(Spacer(1, 12))
 
-    response = Response("\n".join(lines), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="comprobante-{pedido.numero}.txt"'
+    story.append(Paragraph("Gracias por comprar en Monolith Gaming Store.", styles["SmallMuted"]))
+    story.append(Paragraph("Documento generado automaticamente por el sistema.", styles["SmallMuted"]))
+
+    def footer(canvas, doc_obj):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.HexColor("#00B936"))
+        canvas.setLineWidth(0.5)
+        canvas.line(16 * mm, 12 * mm, 194 * mm, 12 * mm)
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(colors.HexColor("#555555"))
+        canvas.drawString(16 * mm, 8 * mm, "Monolith Gaming Store - comprobante generado por sistema")
+        canvas.drawRightString(194 * mm, 8 * mm, f"Pagina {doc_obj.page}")
+        canvas.restoreState()
+
+    doc.build(story, onFirstPage=footer, onLaterPages=footer)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 
