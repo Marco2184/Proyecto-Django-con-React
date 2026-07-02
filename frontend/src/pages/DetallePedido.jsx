@@ -66,24 +66,42 @@ export default function DetallePedido({ t, user, orderId, onNavigate }) {
 
   const printReceipt = async () => {
     try {
+      setError('')
       const pdf = await getReceiptPdf()
       const url = window.URL.createObjectURL(pdf)
-      const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
 
-      if (!printWindow) {
-        setError('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para imprimir el comprobante.')
-        window.URL.revokeObjectURL(url)
-        return
+      const previousFrame = document.getElementById('monolith-receipt-print-frame')
+      if (previousFrame) previousFrame.remove()
+
+      const iframe = document.createElement('iframe')
+      iframe.id = 'monolith-receipt-print-frame'
+      iframe.title = 'Comprobante Monolith'
+      iframe.src = url
+      iframe.style.position = 'fixed'
+      iframe.style.right = '0'
+      iframe.style.bottom = '0'
+      iframe.style.width = '0'
+      iframe.style.height = '0'
+      iframe.style.border = '0'
+      iframe.style.opacity = '0'
+
+      iframe.onload = () => {
+        window.setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus()
+            iframe.contentWindow?.print()
+          } catch (printError) {
+            setError('No se pudo abrir la impresión automática. Descarga el comprobante y ábrelo para imprimirlo.')
+          } finally {
+            window.setTimeout(() => {
+              iframe.remove()
+              window.URL.revokeObjectURL(url)
+            }, 60000)
+          }
+        }, 700)
       }
 
-      window.setTimeout(() => {
-        try {
-          printWindow.focus()
-          printWindow.print()
-        } finally {
-          window.setTimeout(() => window.URL.revokeObjectURL(url), 60000)
-        }
-      }, 900)
+      document.body.appendChild(iframe)
     } catch (err) {
       setError(getApiError(err))
     }
