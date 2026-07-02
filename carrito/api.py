@@ -263,10 +263,14 @@ def cart_checkout(request):
                 if direccion.predeterminada:
                     request.user.direcciones.exclude(pk=direccion.pk).update(predeterminada=False)
 
+            # Bloqueamos solo los registros del carrito.
+            # No se debe usar select_for_update() junto con select_related('producto__categoria')
+            # porque categoria puede ser nullable y PostgreSQL lanza:
+            # FOR UPDATE cannot be applied to the nullable side of an outer join.
             items = list(
                 carrito.itemcarrito_set
-                .select_for_update()
-                .select_related('producto', 'producto__categoria')
+                .select_for_update(of=('self',))
+                .select_related('producto')
                 .prefetch_related('producto__plataformas')
             )
 
