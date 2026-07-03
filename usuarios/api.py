@@ -99,13 +99,21 @@ def _send_mail_safe(subject, body, to):
 
 
 def _user_payload(user):
+    is_staff = bool(getattr(user, "is_staff", False))
+    is_superuser = bool(getattr(user, "is_superuser", False))
+
     return {
         "id": user.id,
-        "nombre": user.nombre,
-        "email": user.email,
-        "telefono": user.telefono,
-        "email_verificado": user.email_verificado,
-        "fecha_registro": user.fecha_registro,
+        "nombre": getattr(user, "nombre", ""),
+        "email": getattr(user, "email", ""),
+        "telefono": getattr(user, "telefono", ""),
+        "email_verificado": bool(getattr(user, "email_verificado", False)),
+        "fecha_registro": getattr(user, "fecha_registro", None),
+        "is_active": bool(getattr(user, "is_active", False)),
+        "cuenta_activa": bool(getattr(user, "cuenta_activa", False)),
+        "is_staff": is_staff,
+        "is_superuser": is_superuser,
+        "is_admin": is_staff or is_superuser,
     }
 
 
