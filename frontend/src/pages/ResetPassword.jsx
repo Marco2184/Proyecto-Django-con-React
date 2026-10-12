@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { confirmPasswordReset } from 'firebase/auth'
-import { auth } from '../services/firebase'
-import { getTranslatedText } from '../i18n'
+import { api, getApiError } from '../services/api'
 
 export default function ResetPassword({ t, token, onNavigate }) {
   const [form, setForm] = useState({ password1: '', password2: '' })
@@ -22,10 +20,10 @@ export default function ResetPassword({ t, token, onNavigate }) {
     setLoading(true)
 
     try {
-      await confirmPasswordReset(auth, token, form.password1)
+      await api.post(`/auth/reset-password/${token}/`, form)
       setMsgKey('passwordResetDone')
     } catch (err) {
-      setError(getTranslatedText(t, err.code || err.message))
+      setError(getApiError(err))
     } finally {
       setLoading(false)
     }

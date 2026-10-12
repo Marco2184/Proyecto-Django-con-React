@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { auth } from '../services/firebase'
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
-import { api, getApiError } from '../services/api'
+import { authApi, getApiError } from '../services/api'
 
 export default function Register({ t, onNavigate, lang, toggleLang }) {
   const [form, setForm] = useState({
@@ -33,25 +31,7 @@ export default function Register({ t, onNavigate, lang, toggleLang }) {
     }
 
     try {
-      // 1. Crear usuario en Firebase
-      const { user } = await createUserWithEmailAndPassword(auth, form.email, form.password1)
-
-      // 2. Actualizar nombre en Firebase
-      await updateProfile(user, { displayName: form.nombre })
-
-      // 3. Enviar verificación de correo desde Firebase
-      await sendEmailVerification(user)
-
-      // 4. Registrar datos adicionales en Django
-      const token = await user.getIdToken()
-      await api.post('/auth/firebase-register/', {
-        nombre: form.nombre,
-        email: form.email,
-        telefono: form.telefono,
-        firebase_uid: user.uid
-      }, {
-        headers: { Authorization: `Firebase ${token}` }
-      })
+      await authApi.post('/auth/register', form)
 
       setMsgKey('accountCreatedCheckEmail')
       setForm({ nombre: '', email: '', telefono: '', password1: '', password2: '' })

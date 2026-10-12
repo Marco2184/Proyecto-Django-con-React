@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { sendPasswordResetEmail } from 'firebase/auth'
-import { auth } from '../services/firebase'
-import { getTranslatedText } from '../i18n'
+import { api, getApiError } from '../services/api'
 
 export default function ForgotPassword({ t, onNavigate }) {
   const [email, setEmail] = useState('')
@@ -16,10 +14,10 @@ export default function ForgotPassword({ t, onNavigate }) {
     setLoading(true)
 
     try {
-      await sendPasswordResetEmail(auth, email)
+      await api.post('/auth/forgot-password/', {email})
       setMsgKey('passwordResetEmailSent')
     } catch (err) {
-      setError(getTranslatedText(t, err.code || err.message))
+      setError(getApiError(err))
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
-import { auth } from '../services/firebase'
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { api, getApiError } from '../services/api'
+import { authApi, getApiError } from '../services/api'
 
 export default function Login({ t, onNavigate, onAuth, lang, toggleLang }) {
   const [form, setForm] = useState({ email: '', password: '' })
@@ -19,18 +17,9 @@ export default function Login({ t, onNavigate, onAuth, lang, toggleLang }) {
     setError('')
 
     try {
-      // 1. Login con Firebase
-      const { user } = await signInWithEmailAndPassword(auth, form.email, form.password)
+      const { data } = await authApi.post('/auth/login', form)
 
-      // 2. Obtener token de Firebase
-      const token = await user.getIdToken()
-
-      // 3. Enviar token a Django para obtener token DRF
-      const { data } = await api.post('/auth/firebase-login/', {}, {
-        headers: { Authorization: `Firebase ${token}` }
-      })
-
-      onAuth(data.token, data.user)
+      onAuth(data.access, data.user)
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
         setError(t.invalidLogin)

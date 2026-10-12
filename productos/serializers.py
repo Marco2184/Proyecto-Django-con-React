@@ -59,11 +59,21 @@ class ProductoListSerializer(serializers.ModelSerializer):
         return obj.porcentaje_descuento
 
     def get_cantidad_en_carrito(self, obj):
+        cantidades = self.context.get('cart_quantities')
+
+        if cantidades is not None:
+            return cantidades.get(obj.pk, 0)
+
         request = self.context.get('request')
         user = getattr(request, 'user', None)
+
         if not user or not user.is_authenticated:
             return 0
-        item = obj.itemcarrito_set.filter(carrito__usuario=user).first()
+
+        item = obj.itemcarrito_set.filter(
+            carrito__usuario=user
+        ).first()
+
         return item.cantidad if item else 0
 
 

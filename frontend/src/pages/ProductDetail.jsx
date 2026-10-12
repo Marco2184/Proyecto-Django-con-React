@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, getApiError } from '../services/api'
+import { api, catalogApi, getApiError } from '../services/api'
 
 function ProductMini({ p, onNavigate, onAdd, t }) {
   const img = p.imagen_url || p.imagen_principal || ''
@@ -23,7 +23,7 @@ export default function ProductDetail({ t, productId, onNavigate, user, onCartCh
 
   useEffect(() => {
     setP(null); setError(''); setMsg('')
-    api.get(`/productos/${productId}/`).then(({data}) => {
+    catalogApi.get(`/productos/${productId}/`).then(({data}) => {
       setP(data)
       const firstGallery = (data.galeria || [])[0]
       setActiveImg(firstGallery?.url || firstGallery?.imagen || data.imagen_url || data.imagen_principal || '')

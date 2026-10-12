@@ -1,7 +1,16 @@
 import axios from 'axios'
 
+export const AUTH_BASE_URL = import.meta.env.VITE_AUTH_API_URL || 'http://127.0.0.1:4000'
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
+export const catalogApi = axios.create({
+  baseURL: import.meta.env.VITE_CATALOG_API_URL || (import.meta.env.DEV ? '/catalog-service/api' : API_BASE_URL),
+  timeout: 12000
+})
+
+export const authApi = axios.create({baseURL: AUTH_BASE_URL, withCredentials: true, timeout:12000})
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,10 +20,10 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = getAuthToken()
 
   if (token) {
-    config.headers.Authorization = `Token ${token}`
+    config.headers.Authorization = `Bearer ${token}`
   }
 
   return config
@@ -22,34 +31,37 @@ api.interceptors.request.use((config) => {
 
 export function setAuthToken(token) {
   if (token) {
-    localStorage.setItem('token', token)
-    api.defaults.headers.common.Authorization = `Token ${token}`
+    sessionStorage.setItem('jwt_access', token)
+    api.defaults.headers.common.Authorization = `Bearer ${token}`
   } else {
-    localStorage.removeItem('token')
+    sessionStorage.removeItem('jwt_access')
     delete api.defaults.headers.common.Authorization
   }
 }
 
 export function getAuthToken() {
-  return localStorage.getItem('token')
+  return sessionStorage.getItem('jwt_access')
 }
 
+let refreshPromise = null
+async function refreshAccess() {
+  if (!refreshPromise) refreshPromise = authApi.post('/auth/refresh').then(({data}) => {setAuthToken(data.access);return data.access}).finally(()=>{refreshPromise=null})
+  return refreshPromise
+}
+api.interceptors.response.use(r=>r,async error=>{
+  const original=error.config
+  if(error.response?.status===401 && original && !original._retried && !original.url?.includes('/auth/login/')) {
+    original._retried=true
+    try {original.headers.Authorization=`Bearer ${await refreshAccess()}`;return api(original)} catch {setAuthToken(null)}
+  }
+  return Promise.reject(error)
+})
 export async function bootstrapAuth() {
-  const token = getAuthToken()
-
-  if (!token) {
-    return null
-  }
-
-  setAuthToken(token)
-
   try {
-    const { data } = await api.get('/auth/me/')
+    if (!getAuthToken()) await refreshAccess()
+    const {data}=await api.get('/auth/me/')
     return data
-  } catch (error) {
-    setAuthToken(null)
-    return null
-  }
+  } catch {setAuthToken(null);return null}
 }
 
 export function getApiError(error) {

@@ -73,7 +73,7 @@ export default function Profile({ t, user, setUser, onNavigate, firebaseUser, fi
     setProfile(user)
     loadAddresses()
     loadOrders()
-  }, [user])
+  }, [user?.id])
 
   const safe = async (fn) => {
     setMsgKey('')

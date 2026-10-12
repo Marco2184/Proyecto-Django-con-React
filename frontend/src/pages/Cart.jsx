@@ -19,87 +19,109 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
   const [couponCode, setCouponCode] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
+  const [updating, setUpdating] = useState(false)
 
-  const load = async () => {
-    try {
-      setError('')
-
-      const { data } = await api.get('/cart/')
-
-      setCart(data)
-      setCouponCode(data.cupon || '')
-      onCartChange?.()
-    } catch (err) {
-      setError(getApiError(err))
-    }
+  const updateCart = (data) => {
+    setCart(data)
+    setCouponCode(data.cupon || '')
+    onCartChange?.(data)
   }
 
   useEffect(() => {
+    let cancelled = false
+
     if (!user) {
       onNavigate('login')
       return
     }
 
+    const load = async () => {
+      try {
+        setError('')
+        const { data } = await api.get('/cart/')
+
+        if (cancelled) return
+
+        setCart(data)
+        setCouponCode(data.cupon || '')
+        // No hacemos otra solicitud desde App.jsx.
+      } catch (err) {
+        if (!cancelled) setError(getApiError(err))
+      }
+    }
+
     load()
+
+    return () => {
+      cancelled = true
+    }
   }, [user])
 
   const patch = async (id, accion) => {
+    if (updating) return
+
     try {
+      setUpdating(true)
       setError('')
       setNotice(null)
 
       const { data } = await api.patch(`/cart/items/${id}/`, { accion })
-
-      setCart(data)
-      setCouponCode(data.cupon || '')
-      onCartChange?.()
+      updateCart(data)
     } catch (err) {
       setError(getApiError(err))
+    } finally {
+      setUpdating(false)
     }
   }
 
   const remove = async (id) => {
-    const ok = window.confirm(t.confirmRemoveCartItem)
+    if (updating) return
 
+    const ok = window.confirm(t.confirmRemoveCartItem)
     if (!ok) return
 
     try {
+      setUpdating(true)
       setError('')
       setNotice(null)
 
       const { data } = await api.delete(`/cart/items/${id}/`)
+      updateCart(data)
 
-      setCart(data)
-      setCouponCode(data.cupon || '')
-      onCartChange?.()
       setNotice({ type: 'success', key: 'cartItemRemoved' })
     } catch (err) {
       setError(getApiError(err))
+    } finally {
+      setUpdating(false)
     }
   }
 
   const clear = async () => {
-    const ok = window.confirm(t.confirmClearCart)
+    if (updating) return
 
+    const ok = window.confirm(t.confirmClearCart)
     if (!ok) return
 
     try {
+      setUpdating(true)
       setError('')
       setNotice(null)
       setCouponError('')
 
       const { data } = await api.post('/cart/clear/')
+      updateCart(data)
 
-      setCart(data)
-      setCouponCode('')
-      onCartChange?.()
       setNotice({ type: 'success', key: 'cartCleared' })
     } catch (err) {
       setError(getApiError(err))
+    } finally {
+      setUpdating(false)
     }
   }
 
   const applyCoupon = async () => {
+    if (couponLoading) return
+
     try {
       setCouponLoading(true)
       setCouponError('')
@@ -109,8 +131,7 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
         codigo: couponCode.trim()
       })
 
-      setCart(data)
-      setCouponCode(data.cupon || couponCode.trim().toUpperCase())
+      updateCart(data)
     } catch (err) {
       setCouponError(getApiError(err))
     } finally {
@@ -119,15 +140,15 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
   }
 
   const removeCoupon = async () => {
+    if (couponLoading) return
+
     try {
       setCouponLoading(true)
       setCouponError('')
       setNotice(null)
 
       const { data } = await api.post('/cart/quitar-cupon/')
-
-      setCart(data)
-      setCouponCode('')
+      updateCart(data)
     } catch (err) {
       setCouponError(getApiError(err))
     } finally {
@@ -136,7 +157,7 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
   }
 
   const checkout = () => {
-    onNavigate('checkout')
+    if (!updating) onNavigate('checkout')
   }
 
   if (error) {
@@ -198,15 +219,21 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
                   </button>
 
                   <div className="muted">
-                    {t.currentPrice} S/ {toNumber(item.producto.precio).toFixed(2)} · {t.subtotal} S/ {toNumber(item.subtotal).toFixed(2)}
+                    {t.currentPrice} S/ {toNumber(item.producto.precio).toFixed(2)}
+                    {' · '}
+                    {t.subtotal} S/ {toNumber(item.subtotal).toFixed(2)}
                   </div>
 
                   <div className="muted">
-                    {t.stockAvailable}: {item.producto.stock} · {t.inCart}: {item.cantidad}
+                    {t.stockAvailable}: {item.producto.stock}
+                    {' · '}
+                    {t.inCart}: {item.cantidad}
                   </div>
 
                   <div className="muted">
-                    {item.producto.plataformas?.map((platform) => getTranslatedPlatform(t, platform)).join(', ')}
+                    {item.producto.plataformas?.map(
+                      (platform) => getTranslatedPlatform(t, platform)
+                    ).join(', ')}
                   </div>
 
                   {item.precio_cambio && (
@@ -218,26 +245,39 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
                   )}
 
                   <div className="spec-list">
-                    {Object.entries(item.producto.especificaciones || {}).slice(0, 3).map(([key, value]) => (
-                      <span key={key}>
-                        {getTranslatedSpec(t, key)}: {value}
-                      </span>
-                    ))}
+                    {Object.entries(item.producto.especificaciones || {})
+                      .slice(0, 3)
+                      .map(([key, value]) => (
+                        <span key={key}>
+                          {getTranslatedSpec(t, key)}: {value}
+                        </span>
+                      ))}
                   </div>
                 </div>
 
                 <div className="qty">
-                  <button onClick={() => patch(item.id, 'menos')}>−</button>
+                  <button
+                    disabled={updating}
+                    onClick={() => patch(item.id, 'menos')}
+                  >
+                    −
+                  </button>
+
                   <span>{item.cantidad}</span>
+
                   <button
                     onClick={() => patch(item.id, 'mas')}
-                    disabled={item.cantidad >= item.producto.stock}
+                    disabled={updating || item.cantidad >= item.producto.stock}
                   >
                     +
                   </button>
                 </div>
 
-                <button className="btn-ghost" onClick={() => remove(item.id)}>
+                <button
+                  className="btn-ghost"
+                  disabled={updating}
+                  onClick={() => remove(item.id)}
+                >
                   {t.delete}
                 </button>
               </div>
@@ -253,15 +293,25 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
                 value={couponCode}
                 onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
                 placeholder={t.discountCodePlaceholder || 'MONOLITH10, GAMER20 o NEON50'}
-                disabled={couponLoading || Boolean(cart.cupon)}
+                disabled={couponLoading || updating || Boolean(cart.cupon)}
               />
 
               {cart.cupon ? (
-                <button className="btn-ghost" type="button" onClick={removeCoupon} disabled={couponLoading}>
+                <button
+                  className="btn-ghost"
+                  type="button"
+                  onClick={removeCoupon}
+                  disabled={couponLoading || updating}
+                >
                   {couponLoading ? (t.loading || 'Cargando...') : (t.removeCoupon || 'Quitar cupón')}
                 </button>
               ) : (
-                <button className="btn-neon" type="button" onClick={applyCoupon} disabled={couponLoading}>
+                <button
+                  className="btn-neon"
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={couponLoading || updating}
+                >
                   {couponLoading ? (t.loading || 'Cargando...') : (t.apply || 'Aplicar')}
                 </button>
               )}
@@ -294,14 +344,18 @@ export default function Cart({ t, user, onNavigate, onCartChange }) {
           </div>
 
           <div className="row-actions">
-            <button className="btn-ghost" onClick={clear}>
+            <button className="btn-ghost" disabled={updating} onClick={clear}>
               {t.empty}
             </button>
 
             <button
               className="btn-neon"
               onClick={checkout}
-              disabled={cart.vacio || (cart.items || []).some((item) => item.stock_insuficiente)}
+              disabled={
+                updating ||
+                cart.vacio ||
+                (cart.items || []).some((item) => item.stock_insuficiente)
+              }
             >
               {t.confirmOrder}
             </button>

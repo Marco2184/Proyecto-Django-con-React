@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import './styles/global.css'
 import './styles/app.css'
 import Navbar from './components/Navbar'
@@ -17,8 +16,7 @@ import MisPedidos from './pages/MisPedidos'
 import DetallePedido from './pages/DetallePedido'
 import PedidoConfirmado from './pages/PedidoConfirmado'
 import AdminDashboard from './pages/AdminDashboard'
-import { api, bootstrapAuth, setAuthToken } from './services/api'
-import { auth } from './services/firebase'
+import { api, authApi, bootstrapAuth, setAuthToken } from './services/api'
 import { dict } from './i18n'
 
 function readRoute() {
@@ -44,12 +42,28 @@ function App() {
   const [lang, setLang] = useState(localStorage.getItem('lang') || 'es')
   const t = useMemo(() => dict[lang], [lang])
 
+  const fetchCartCount = useCallback(async () => {
+    try {
+      const { data } = await api.get('/cart/')
+      setCartCount(data.cantidad_items || 0)
+    } catch {
+      setCartCount(0)
+    }
+  }, [])
+
+  const handleCartChange = useCallback((cartData) => {
+    if (cartData && typeof cartData.cantidad_items === 'number') {
+      setCartCount(cartData.cantidad_items)
+    } else {
+      fetchCartCount()
+    }
+  }, [fetchCartCount])
+
   useEffect(() => {
     let mounted = true
 
     const initBackendSession = async () => {
       const nextUser = await bootstrapAuth()
-
       if (!mounted) return
 
       if (nextUser) {
@@ -62,18 +76,12 @@ function App() {
     }
 
     initBackendSession()
-
-    const unsubscribe = onAuthStateChanged(auth, (nextFirebaseUser) => {
-      if (!mounted) return
-      setFirebaseUser(nextFirebaseUser)
-      setFirebaseReady(true)
-    })
+    setFirebaseReady(true)
 
     return () => {
       mounted = false
-      unsubscribe()
     }
-  }, [])
+  }, [fetchCartCount])
 
   useEffect(() => {
     localStorage.setItem('lang', lang)
@@ -88,15 +96,6 @@ function App() {
     } catch {
       setAuthToken(null)
       setUser(null)
-      setCartCount(0)
-    }
-  }
-
-  const fetchCartCount = async () => {
-    try {
-      const { data } = await api.get('/cart/')
-      setCartCount(data.cantidad_items || 0)
-    } catch {
       setCartCount(0)
     }
   }
@@ -138,7 +137,7 @@ function App() {
     } catch {}
 
     try {
-      await signOut(auth)
+      await authApi.post('/auth/logout')
     } catch {}
 
     setAuthToken(null)
@@ -148,7 +147,7 @@ function App() {
     navigate('catalog')
   }
 
-  const toggleLang = () => setLang(lang === 'es' ? 'en' : 'es')
+  const toggleLang = () => setLang(prev => prev === 'es' ? 'en' : 'es')
 
   return (
     <div className="app">
@@ -166,7 +165,7 @@ function App() {
       )}
 
       {page === 'catalog' && (
-        <Catalog t={t} onNavigate={navigate} user={user} onCartChange={fetchCartCount} />
+        <Catalog t={t} onNavigate={navigate} user={user} onCartChange={handleCartChange} />
       )}
 
       {page === 'detail' && (
@@ -175,16 +174,16 @@ function App() {
           productId={productId}
           onNavigate={navigate}
           user={user}
-          onCartChange={fetchCartCount}
+          onCartChange={handleCartChange}
         />
       )}
 
       {page === 'cart' && (
-        <Cart t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />
+        <Cart t={t} user={user} onNavigate={navigate} onCartChange={handleCartChange} />
       )}
 
       {page === 'checkout' && (
-        <Checkout t={t} user={user} onNavigate={navigate} onCartChange={fetchCartCount} />
+        <Checkout t={t} user={user} onNavigate={navigate} onCartChange={handleCartChange} />
       )}
 
       {page === 'pedidoConfirmado' && (

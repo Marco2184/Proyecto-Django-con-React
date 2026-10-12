@@ -15,31 +15,41 @@ export default function MisPedidos({ t, user, onNavigate }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
-  const load = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      const params = {}
-      if (estado) params.estado = estado
-      if (search.trim()) params.search = search.trim()
-      const { data } = await api.get('/profile/orders/', { params })
-      setOrders(data.results || data || [])
-      setSummary(data.resumen_mensual || [])
-    } catch (err) {
-      setError(getApiError(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
     if (!user) {
       onNavigate('login')
       return
     }
-    const timer = window.setTimeout(load, 250)
-    return () => window.clearTimeout(timer)
-  }, [user, estado, search])
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      try {
+        setLoading(true)
+        setError('')
+        const params = {}
+        if (estado) params.estado = estado
+        if (search.trim()) params.search = search.trim()
+        const { data } = await api.get('/profile/orders/', {
+          params,
+          signal: controller.signal
+        })
+        if (controller.signal.aborted) return
+        setOrders(data.results || (Array.isArray(data) ? data : []))
+        setSummary(data.resumen_mensual || [])
+      } catch (err) {
+        if (!controller.signal.aborted && err.code !== 'ERR_CANCELED') {
+          setError(getApiError(err))
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
+      }
+    }, search.trim() ? 300 : 0)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [user?.id, estado, search])
 
   const grouped = useMemo(() => {
     return orders.reduce((acc, order) => {

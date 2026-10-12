@@ -1,5 +1,7 @@
 import re
 import unicodedata
+from django.db.models import TextField
+from django.db.models.functions import Cast
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -48,9 +50,19 @@ def is_adult_product(producto):
 
 
 def exclude_adult_content(qs):
-    qs = qs.exclude(_adult_query()).distinct()
-    ids = [obj.id for obj in qs.select_related('categoria') if not is_adult_product(obj)]
-    return qs.filter(id__in=ids)
+    qs = qs.annotate(
+        especificaciones_texto=Cast(
+            'especificaciones',
+            output_field=TextField()
+        )
+    )
+
+    condiciones = _adult_query()
+
+    for term in ADULT_BLOCKLIST:
+        condiciones |= Q(especificaciones_texto__icontains=term)
+
+    return qs.exclude(condiciones).distinct()
 
 
 def _matches_short_search(producto, term):
@@ -68,17 +80,30 @@ class ProductoPagination(PageNumberPagination):
 
 
 class ProductoViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Producto.objects.select_related('categoria').prefetch_related('plataformas', 'galeria', 'itemcarrito_set')
+    queryset = (
+    Producto.objects
+    .select_related('categoria')
+    .prefetch_related('plataformas')
+)   
+
     pagination_class = ProductoPagination
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['precio', 'ventas', 'activo', 'valoracion', 'nombre']
     ordering = ['-ventas']
+    
+    def get_object(self):
+        return super().get_object()
 
     def get_serializer_class(self):
         return ProductoDetailSerializer if self.action == 'retrieve' else ProductoListSerializer
 
     def get_queryset(self):
-        qs = exclude_adult_content(self.queryset.filter(stock__gt=0))
+        qs = self.queryset.filter(stock__gt=0)
+
+        if self.action == 'retrieve':
+            qs = qs.prefetch_related('galeria')
+
+        qs = exclude_adult_content(qs)
 
         plataforma = self.request.query_params.getlist('plataforma')
         if plataforma:

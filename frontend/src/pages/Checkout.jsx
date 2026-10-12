@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, getApiError } from '../services/api'
 import './Checkout.css'
 
@@ -27,6 +27,7 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState('idle')
+  const paymentLock = useRef(false)
 
   const hasSavedAddress = addresses.length > 0
 
@@ -42,43 +43,52 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
     return true
   }, [cart, addressMode, selectedAddress, address, metodoPago, payment])
 
-  const load = async () => {
-    try {
-      setError('')
-      const [cartRes, addressRes] = await Promise.all([
-        api.get('/cart/'),
-        api.get('/profile/addresses/')
-      ])
-      setCart(cartRes.data)
-      const list = addressRes.data || []
-      setAddresses(list)
-      const defaultAddress = list.find((item) => item.predeterminada) || list[0]
-      if (defaultAddress) {
-        setSelectedAddress(String(defaultAddress.id))
-        setAddressMode('saved')
-      } else {
-        setAddressMode('new')
-      }
-    } catch (err) {
-      setError(getApiError(err))
-    }
-  }
-
   useEffect(() => {
     if (!user) {
       onNavigate('login')
       return
     }
+
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        setError('')
+        const [cartRes, addressRes] = await Promise.all([
+          api.get('/cart/', { signal: controller.signal }),
+          api.get('/profile/addresses/', { signal: controller.signal })
+        ])
+        if (controller.signal.aborted) return
+
+        setCart(cartRes.data)
+        const raw = addressRes.data
+        const list = Array.isArray(raw) ? raw : (raw?.results || [])
+        setAddresses(list)
+        const defaultAddress = list.find((item) => item.predeterminada) || list[0]
+        if (defaultAddress) {
+          setSelectedAddress(String(defaultAddress.id))
+          setAddressMode('saved')
+        } else {
+          setAddressMode('new')
+        }
+      } catch (err) {
+        if (!controller.signal.aborted && err.code !== 'ERR_CANCELED') {
+          setError(getApiError(err))
+        }
+      }
+    }
+
     load()
-  }, [user])
+    return () => controller.abort()
+  }, [user?.id])
 
   const confirmCheckout = async () => {
+    if (paymentLock.current || !canPay) return
+    paymentLock.current = true
     try {
       setLoading(true)
       setPaymentStatus('processing')
       setError('')
 
-      await new Promise((resolve) => window.setTimeout(resolve, 2500))
 
       const payload = {
         metodo_pago: metodoPago,
@@ -94,14 +104,15 @@ export default function Checkout({ t, user, onNavigate, onCartChange }) {
       const { data } = await api.post('/cart/checkout/', payload)
 
       setPaymentStatus('approved')
-      await new Promise((resolve) => window.setTimeout(resolve, 900))
+      await new Promise((resolve) => window.setTimeout(resolve, 300))
 
-      onCartChange?.()
+      onCartChange?.(data.carrito)
       onNavigate('pedidoConfirmado', { orderId: data.pedido.id, pedido: data.pedido })
     } catch (err) {
       setPaymentStatus('idle')
       setError(getApiError(err))
     } finally {
+      paymentLock.current = false
       setLoading(false)
     }
   }

@@ -59,10 +59,13 @@ CSRF_TRUSTED_ORIGINS = config(
     cast=Csv()
 )
 
+JWT_SHARED_SECRET = config('JWT_SHARED_SECRET', default='')
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'monolith.node_jwt_auth.NodeJWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
@@ -107,6 +110,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 AUTH_PASSWORD_VALIDATORS = [
     {
