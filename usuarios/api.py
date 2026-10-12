@@ -3,7 +3,6 @@ from io import BytesIO
 from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.utils.translation import activate
 from django.utils import timezone
@@ -22,6 +21,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from .models import Usuario, DireccionEnvio, Pedido, PedidoItem, PedidoTimeline
+from .gmail_mail import send_gmail_message
 from productos.models import Producto
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
@@ -56,26 +56,19 @@ def _init_firebase_if_configured():
 _init_firebase_if_configured()
 FRONTEND_URL = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
 def _send_mail_safe(subject, body, to):
-    """
-    Envía correos reales por SMTP.
-    Si falla, imprime el error en Render Logs.
+    """Envía un correo por Gmail API HTTPS; nunca revela OAuth en los logs.
+
+    Mantiene el comportamiento público previo de recuperación: los errores
+    se registran, pero no revelan si existe una cuenta de usuario.
     """
     try:
-        print("Intentando enviar correo a:", to)
-        sent = send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            [to],
-            fail_silently=False,
-        )
-        print("Resultado send_mail:", sent)
-        if sent:
-            print(f"Correo enviado correctamente a {to}")
-        else:
-            print(f"No se pudo enviar el correo a {to}")
-    except Exception as e:
-        print("ERROR ENVIANDO CORREO:", repr(e))
+        send_gmail_message(subject=subject, body=body, recipient=to)
+        print('GMAIL_API: mensaje aceptado por Gmail')
+        return True
+    except Exception as error:
+        # Mensaje controlado; jamás imprimir URLs de reseteo ni tokens.
+        print('GMAIL_API: envío fallido (%s)' % type(error).__name__)
+        return False
 def _user_payload(user):
     is_staff = bool(getattr(user, "is_staff", False))
     is_superuser = bool(getattr(user, "is_superuser", False))
