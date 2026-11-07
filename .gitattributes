@@ -1,0 +1,11 @@
+# Consistent source line endings across Windows, Linux, Docker and CI.
+* text=auto eol=lf
+*.mo binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

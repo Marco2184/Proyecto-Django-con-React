@@ -1,0 +1,70 @@
+name: Monolith validations
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: monolith-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: monolith_ci
+          POSTGRES_USER: monolith_ci
+          POSTGRES_PASSWORD: isolated-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U monolith_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: monolith.test_settings
+      SECRET_KEY: ci-only-django-secret-000000000000000000000000000
+      JWT_SHARED_SECRET: ci-only-shared-secret-00000000000000000000000
+      TEST_DATABASE_URL: postgresql://monolith_ci:isolated-ci-only@127.0.0.1:5432/monolith_ci
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test tests --verbosity 2
+  web:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-only-django-secret-000000000000000000000000000
+      JWT_SHARED_SECRET: ci-only-shared-secret-00000000000000000000000
+      VITE_API_URL: /api
+      VITE_AUTH_API_URL: /
+      VITE_CATALOG_API_URL: /catalog-service/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            catalog-service/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix catalog-service
+      - run: npm test --prefix frontend
+      - run: npm test --prefix catalog-service
+      - run: npm run build --prefix frontend
+      - run: npx --prefix frontend playwright install --with-deps chromium
+      - run: node --test frontend/test/browser.mjs

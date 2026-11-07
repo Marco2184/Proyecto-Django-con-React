@@ -1,0 +1,108 @@
+# Entorno virtual
+.env.*
+!.env.example
+docker/browser/*.png
+docker/browser/fixtures.json
+docker/browser/audit-*.json
+backup-before-docker-*
+backup-docker-sources/
+backup-security-*/
+backup-ux-*/
+backup-chatbot-*/
+venv/
+env/
+.venv/
+
+# Variables de entorno
+.env
+.env.local
+.env.production
+.env.development
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+# Los recursos static/ de las aplicaciones sí deben versionarse.
+
+# Node / React
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
+.browser-test.sqlite3*
+.postgres-test-data/
+.postgres-test.log
+playwright-report/
+test-results/
+.private/
+client_secret*.json
+credentials*.json
+token*.json
+
+# Archivos privados, respaldos y bases locales
+*.[zZ][iI][pP]
+*.7z
+*.rar
+*.dump
+*.bak
+*.backup
+*.sql
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-journal
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*serviceAccount*.json
+firebase-adminsdk*.json
+backups/
+.postgres*/
+
+# Resultados y herramientas académicas locales (no son el CI)
+/PRUEBAS_MONOLITH_25/
+/qa-tests/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage/
+.vite/
+*.tsbuildinfo
+frontend/test/.docker-browser.mjs
+
+# Docker exports and temporary files
+*.tar
+*.tar.gz
+*.tgz
+*.tmp
+*.temp
+*.part

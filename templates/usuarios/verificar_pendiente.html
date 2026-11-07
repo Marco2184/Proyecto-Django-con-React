@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Verifica tu correo" %} — NEON MONOLITH{% endblock %}
+{% block content %}
+<div style="min-height:calc(100vh - 58px);display:flex;align-items:center;justify-content:center;background:var(--black);">
+  <div class="panel-monolith neon-border" style="max-width:460px;width:100%;padding:2.5rem;text-align:center;margin:1.5rem;">
+    <div style="font-size:3rem;margin-bottom:1rem;">📧</div>
+    <h4 style="font-family:'Orbitron',monospace;font-weight:800;color:var(--neon);letter-spacing:2px;margin-bottom:1rem;">
+      {% trans "Verifica tu correo" %}
+    </h4>
+    <p style="color:var(--gray);font-size:.9rem;margin-bottom:1.5rem;">
+      {% trans "Enviamos un enlace de verificación a" %} <strong style="color:#e0e0e0;">{{ user.email }}</strong>. {% trans "Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta." %}
+    </p>
+    <hr class="divider-m">
+    <form method="post" action="{% url 'registro' %}">
+      {% csrf_token %}
+      <button class="btn-outline-neon" style="width:100%;margin-bottom:1rem;">
+        <i class="fas fa-redo me-2"></i>{% trans "Reenviar correo" %}
+      </button>
+    </form>
+    <div>
+      <a href="{% url 'login' %}" style="color:var(--gray);font-size:.875rem;text-decoration:none;">
+        {% trans "Volver al login" %}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

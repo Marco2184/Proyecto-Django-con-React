@@ -1,0 +1,1206 @@
+import { serverMessages } from './serverMessages.js'
+import { featureText } from './featureText.js'
+export const dict = {
+  es: {
+    dateFrom: "Desde", dateTo: "Hasta",
+    ordersTag: "Pedidos // Historial",
+    orderDetailTag: "Pedido // Detalle",
+    checkoutTag: "Compra // Pago simulado",
+    emailExample: "correo@ejemplo.com",
+    validationRequired: "Completa este campo.",
+    validationEmail: "Ingresa un correo válido.",
+    validationInvalid: "Revisa el valor ingresado.",
+    validationShort: "El texto es demasiado corto.",
+    addressField: "Dirección",
+    quantityField: "Cantidad",
+    paymentField: "Pago",
+    errorField: "Error",
+    receiptPrefix: "comprobante",
+    yes: "S?",
+    no: "No",
+    orderNotCancelable: "Este pedido ya no puede cancelarse.",
+    serverFailureTitle: "Servicio no disponible",
+    specSinglePlayer: "Un jugador",
+    specMultiplayer: "Multijugador",
+
+    accessRequired: "Acceso requerido",
+    adminSignIn: "Inicia sesión para entrar al panel administrativo.",
+    adminIntro: "Gestiona productos, stock, pedidos y usuarios sin alterar el flujo normal de compra.",
+    adminSession: "Sesión admin",
+    adminMonolith: "Panel Monolith",
+    adminTotalSales: "Ventas totales",
+    adminTodaySales: "Ventas hoy",
+    adminLatestOrders: "Últimos pedidos",
+    orderNumber: "Número",
+    customer: "Cliente",
+    units: "unidades",
+    adminLowStockProducts: "Productos con stock bajo",
+    productName: "Nombre",
+    description: "Descripción",
+    price: "Precio",
+    originalPrice: "Precio original",
+    imageUrl: "Imagen URL",
+    inventory: "Inventario",
+    searchProduct: "Buscar producto...",
+    manageOrders: "Gestión de pedidos",
+    searchAdminOrders: "Buscar por número, cliente o correo...",
+    allStatuses: "Todos los estados",
+    searchUser: "Buscar usuario...",
+    saving: "Guardando...",
+    deleted: "Eliminado",
+    locked: "Bloqueado",
+    deletedAccountLocked: "Cuenta eliminada: no se puede modificar.",
+    cannotChangeDeleted: "No puedes modificar una cuenta eliminada.",
+    cannotRemoveOwnAdmin: "No puedes quitarte el rol administrador a ti mismo.",
+    cannotDeactivateOwnAdmin: "No puedes desactivar tu propia cuenta de administrador.",
+    cannotDeactivateSelf: "No puedes desactivar tu propia cuenta.",
+    cannotRemoveOwnRole: "No puedes quitarte tu propio rol admin.",
+    fakeGatewayInfo: "Conectando con pasarela simulada de Monolith.",
+    creatingOrder: "Confirmando tu pedido...",
+    apply: "Aplicar",
+    appliedCoupon: "Cupón aplicado",
+    cannotCancelOrder: "Este pedido ya no puede cancelarse.",
+    printUnavailable: "No se pudo abrir la impresión automática. Descarga el comprobante y ábrelo para imprimirlo.",
+    networkError: "Error de red. Revisa tu conexión.",
+    descriptionUnavailable: "No hay una descripción oficial disponible en español.",
+    specUnavailable: "Información localizada no disponible.",
+    timelineUpdate: "Estado del pedido actualizado.",
+    paymentPending: "Pendiente",
+    paymentApprovedStatus: "Aprobado",
+    paymentRejectedStatus: "Rechazado",
+    paymentRefunded: "Reembolsado",
+
+    skipContent: 'Saltar al contenido', changeLanguage: 'Cambiar idioma', pageNotFound: 'Esta página no existe.',
+    estimatedDelivery: 'Entrega estimada',
+    retry: 'Reintentar', filtersUnavailable: 'No se pudieron cargar los filtros.',
+    priceRange: 'Precio (S/)', minimumPrice: 'Precio mínimo', maximumPrice: 'Precio máximo',
+    applyFilters: 'Aplicar precios', resetFilters: 'Limpiar filtros', priceRangeInvalid: 'Revisa el rango de precios.',
+    relevance: 'Relevancia', searchMinimum: 'Escribe al menos dos caracteres.',
+    pagination: 'Paginación del catálogo', previousPage: 'Anterior', nextPage: 'Siguiente', page: 'Página', showing: 'Mostrando',
+    searchOrders: 'Buscar por número de pedido', backToOrders: 'Volver a mis pedidos',
+    orderStatusLabel: 'Estado del pedido', actions: 'Acciones', productsLabel: 'Productos',
+    downloadReceipt: 'Descargar comprobante', preparingReceipt: 'Preparando comprobante...', printReceipt: 'Imprimir',
+    cancelOrder: 'Cancelar pedido', cancellingOrder: 'Cancelando pedido...', confirmCancelOrder: '¿Seguro que quieres cancelar este pedido?',
+    orderCancelledNotice: 'Pedido cancelado correctamente.', confirmationText: 'Tu pedido fue creado correctamente.',
+    appName: 'MONOLITH',
+
+    // Navegación
+    catalog: 'EL CATÁLOGO',
+    cart: 'TU CARRITO',
+    login: 'INGRESAR',
+    logout: 'Cerrar sesión',
+    profile: 'Perfil',
+    register: 'Crear cuenta',
+    navCatalog: 'EL CATÁLOGO',
+    navCart: 'TU CARRITO',
+    navProfile: 'PERFIL',
+
+    // Catálogo y filtros
+    filters: 'Filtros',
+    platform: 'Plataforma',
+    platforms: 'Plataformas',
+    category: 'Categoría',
+    categories: 'Categorías',
+    all: 'Todos',
+    search: 'Buscar',
+    clear: 'Limpiar',
+    sort: 'Ordenar:',
+    popular: 'Más populares',
+    popularity: 'Popularidad',
+    priceAsc: 'Precio: menor a mayor',
+    priceDesc: 'Precio: mayor a menor',
+    recent: 'Más recientes',
+    lowerPrice: 'Menor precio',
+    higherPrice: 'Mayor precio',
+    found: 'productos encontrados',
+    noResults: 'Sin resultados',
+    productsCatalog: 'Productos // Catálogo',
+    searchPlaceholder: 'Buscar juegos, consolas, accesorios... (2+ letras)',
+    suggestionsTitle: 'Resultados de búsqueda',
+    exploreBy: 'Explorar según...',
+    seeAll: 'Ver todo',
+    viewDetail: 'Ver detalle',
+    noSuggestions: 'No hay coincidencias',
+    loadingCatalog: 'CARGANDO CATÁLOGO...',
+
+    // Productos
+    addCart: 'Agregar',
+    addToCart: 'Agregar al carrito',
+    available: 'Disponible',
+    outStock: 'Sin stock',
+    stock: 'Stock',
+    inCart: 'En carrito',
+    currentPrice: 'Precio actual',
+    priceChanged: 'Precio actualizado desde que lo agregaste',
+    insufficientStock: 'Stock insuficiente',
+    stockAvailable: 'Stock disponible',
+    imagePreview: 'Vista ampliada',
+    similarProducts: 'Productos similares',
+    frequentlyBought: 'Frecuentemente comprados juntos',
+    noSimilar: 'Sin sugerencias similares.',
+    noBundles: 'Sin combinaciones disponibles.',
+    productDetail: 'Producto // Detalle',
+    loadingProduct: 'CARGANDO PRODUCTO...',
+    back: 'Volver',
+    backToCatalog: '← Catálogo',
+    productImage: 'Producto',
+    specs: 'Especificaciones',
+    notAvailable: 'N/D',
+    noDescription: 'Sin descripción.',
+
+    // Carrito
+    cartSprint: 'Carrito',
+    quickCatalogFromCart: 'Catálogo rápido desde carrito',
+    quickSearchPlaceholder: 'Buscar para agregar más productos...',
+    allPlatforms: 'Todas las plataformas',
+    allCategories: 'Todas las categorías',
+    alreadyHave: 'Ya tienes',
+    addedToCart: 'Producto agregado al carrito.',
+    emptyCart: 'Carrito vacío',
+    emptyCartMessage: 'No tienes productos agregados todavía.',
+    goToCatalog: 'Ir al catálogo',
+    groupFilterSort: 'Agrupar, filtrar y ordenar:',
+    allTypes: 'Todos los tipos',
+    recentlyAdded: 'Agregado recientemente',
+    subtotal: 'Subtotal',
+    compatibility: 'Compatibilidad',
+    compatibilityOk: 'Productos compatibles entre sí.',
+    compatibilityWarn: 'Revisa compatibilidad: no todos los productos comparten una misma plataforma.',
+    commonPlatform: 'Plataforma común',
+    suggestions: 'Sugerencias',
+    total: 'Total',
+    empty: 'Vaciar',
+    confirmOrder: 'Continuar al checkout',
+    checkout: 'Checkout',
+    shippingAddress: 'Dirección de envío',
+    useSavedAddress: 'Usar dirección guardada',
+    newAddress: 'Nueva dirección',
+    paymentMethod: 'Método de pago',
+    orderSummary: 'Resumen del pedido',
+    payAndConfirm: 'Pagar y confirmar',
+    processing: 'Procesando...',
+    backToCart: 'Volver al carrito',
+    card: 'Tarjeta',
+    transfer: 'Transferencia',
+    transferInfo: 'Pago por transferencia simulado. El sistema aprobará el pedido automáticamente para el trabajo.',
+    cardNumber: 'Número de tarjeta',
+    simulatedPaymentOnly: 'Demostración académica: pago 100 % simulado. Datos ficticios precargados; no ingreses información bancaria real.',
+    cardName: 'Nombre en tarjeta',
+    cardExpiration: 'MM/AA',
+    cardCvv: 'CVV',
+    orderConfirmed: 'Pedido confirmado',
+    viewOrderDetail: 'Ver detalle',
+    myOrders: 'Mis pedidos',
+    delete: 'Eliminar',
+    loadingCart: 'CARGANDO CARRITO...',
+    searchCartPlaceholder: 'Buscar dentro del carrito...',
+    noCartMatches: 'No hay productos que coincidan con los filtros.',
+    cartCleared: 'Carrito vaciado correctamente.',
+    cartItemRemoved: 'Producto eliminado del carrito.',
+    confirmRemoveCartItem: '¿Seguro que quieres eliminar este producto del carrito?',
+    confirmClearCart: '¿Seguro que quieres vaciar todo el carrito?',
+    orderCreated: 'Pedido creado correctamente.',
+    checkoutStockError: 'No hay stock suficiente para completar el pedido.',
+    checkoutEmptyError: 'El carrito está vacío.',
+    nameAsc: 'Nombre A-Z',
+    noCategory: 'Sin categoría',
+    loading: 'Cargando...',
+
+    // Autenticación - login
+    email: 'Correo',
+    password: 'Contraseña',
+    remember: 'Recordarme 7 días',
+    forgot: '¿Olvidaste la clave?',
+    newHere: '¿Nuevo en el sistema?',
+    create: 'Crear cuenta',
+    signIn: 'Iniciar sesión',
+    haveAccount: '¿Ya tienes cuenta?',
+    loginTag: 'Autenticación // Acceso',
+    loginTitle: 'Iniciar sesión',
+    loginSubtitle: 'Ingresa tus credenciales para continuar.',
+    loginHeroTitle: 'Asciende al verdadero poder',
+    loginHeroSubtitle: 'Monolith Gaming Store. Accede a tu arsenal.',
+    systemOnline: 'Sistema en línea',
+    awaitingAuthentication: 'Esperando autenticación',
+    emailPlaceholder: 'marco.figueroa@...',
+
+    // Autenticación - registro
+    registerTag: 'Autenticación // Registro',
+    registerHeroTitle: 'Crea tu arsenal',
+    registerHeroSubtitle: 'Crea tu cuenta y verifica tu correo.',
+    registerModule: 'Módulo de registro',
+    smtpReady: 'SMTP listo',
+    name: 'Nombre completo',
+    phone: 'Teléfono',
+    confirm: 'Confirmar contraseña',
+
+    // Recuperación/verificación
+    forgotTag: 'Contraseña // Recuperación',
+    forgotTitle: 'Recuperar acceso',
+    sendLink: 'Enviar enlace',
+    resetTag: 'Contraseña // Restablecer',
+    resetTitle: 'Nueva contraseña',
+    update: 'Actualizar',
+    verifyTag: 'Correo // Verificación',
+    verifyTitle: 'Verificar correo',
+    verifying: 'VERIFICANDO...',
+    goToLogin: 'Ir a login',
+    verifyMail: 'Verificación de correo',
+    resend: 'Reenviar verificación',
+
+    // Sesión
+    close: 'Cerrar',
+    cancel: 'Cancelar',
+    yesLogout: 'Sí, cerrar sesión',
+    logoutTitle: '¿Cerrar sesión?',
+    logoutText: 'Confirma para proteger tu cuenta antes de salir.',
+    sessionSecurity: 'Sesión // Seguridad',
+
+    // Perfil
+    profileTitle: 'Perfil',
+    accountTag: 'Usuario // Cuenta',
+    save: 'Guardar',
+    language: 'Idioma',
+    profileData: 'Datos del perfil',
+    profileUpdated: 'Perfil actualizado correctamente.',
+    emailNotVerified: 'Correo no verificado.',
+    recentActivity: 'Actividad reciente',
+    verifiedEmail: 'Correo verificado',
+    pendingEmail: 'Correo pendiente',
+    emailAuthStatus: 'Estado de autenticación por correo',
+    savedAddresses: 'Direcciones guardadas',
+    visibleOrders: 'Pedidos visibles',
+    noOrders: 'Sin pedidos',
+    lastRegisteredStatus: 'Último estado registrado',
+
+    // Contraseña desde perfil
+    changePassword: 'Cambiar contraseña',
+    currentPassword: 'Contraseña actual',
+    newPassword: 'Nueva contraseña',
+    updatePassword: 'Actualizar contraseña',
+
+    // Direcciones
+    addresses: 'Direcciones',
+    street: 'Calle',
+    city: 'Ciudad',
+    department: 'Departamento',
+    postalCode: 'Código postal',
+    defaultAddress: 'Predeterminada',
+    saveChanges: 'Guardar cambios',
+    add: 'Agregar',
+    cancelEdit: 'Cancelar edición',
+    edit: 'Editar',
+    addressAdded: 'Dirección agregada.',
+    addressUpdated: 'Dirección actualizada.',
+    addressDeleted: 'Dirección eliminada.',
+
+    // Pedidos
+    orders: 'Pedidos',
+    filter: 'Filtrar',
+    noRegisteredOrders: 'Sin pedidos registrados.',
+    orderAll: 'Todos',
+    orderPending: 'Pendiente',
+    orderProcessing: 'Procesando',
+    orderShipped: 'Enviado',
+    orderDelivered: 'Entregado',
+    orderCancelled: 'Cancelado',
+
+    // Eliminar cuenta
+    deleteAccount: 'Eliminar cuenta',
+    deleteAccountConfirm: '¿Seguro que quieres eliminar tu cuenta?',
+    deletePasswordPlaceholder: 'Contraseña para confirmar',
+    deleteForever: 'Eliminar definitivamente',
+
+
+    // Notificaciones / Firebase
+    sending: 'Enviando...',
+    updating: 'Actualizando...',
+    refreshStatus: 'Actualizar estado',
+    verificationEmailSent: 'Nuevo enlace de verificación enviado. Revisa tu correo.',
+    emailAlreadyVerified: 'Tu correo ya está verificado.',
+    emailVerifiedNow: 'Correo verificado correctamente.',
+    emailStillPending: 'Tu correo aún aparece como pendiente. Abre el enlace de Firebase y vuelve a actualizar.',
+    emailStatusRefreshed: 'Estado de correo actualizado.',
+    passwordUpdated: 'Contraseña actualizada correctamente.',
+    passwordResetEmailSent: 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.',
+    passwordResetDone: 'Contraseña restablecida correctamente. Ya puedes iniciar sesión.',
+    passwordRequiredToDelete: 'Debes ingresar tu contraseña para eliminar la cuenta.',
+    accountCreatedCheckEmail: 'Cuenta creada. Revisa tu correo para verificarla.',
+    passwordsDontMatch: 'Las contraseñas no coinciden.',
+    emailAlreadyInUse: 'Este correo ya está registrado.',
+    weakPassword: 'La contraseña debe tener al menos 8 caracteres.',
+    invalidLogin: 'Correo o contraseña incorrectos.',
+    userNotFound: 'No existe una cuenta con este correo.',
+    tooManyRequests: 'Demasiados intentos. Intenta más tarde.',
+    sessionExpiredLoginAgain: 'Tu sesión de Firebase expiró. Cierra sesión e inicia nuevamente.',
+    firebaseLoading: 'Cargando sesión de Firebase. Inténtalo nuevamente en unos segundos.',
+    firebaseVerificationInfo: 'La verificación se realiza desde Firebase. Abre el enlace que llegó a tu correo y luego vuelve a iniciar sesión.',
+
+    // Cupones y pago simulado
+    discountCode: 'Código de descuento',
+    discountCodePlaceholder: 'Ingresa tu cupón',
+    applyCoupon: 'Aplicar',
+    removeCoupon: 'Quitar cupón',
+    coupon: 'Cupón',
+    couponApplied: 'Cupón aplicado',
+    couponRemoved: 'Cupón quitado',
+    couponInvalid: 'Código de descuento inválido.',
+    couponEmptyCart: 'No puedes aplicar un cupón con el carrito vacío.',
+    couponRequired: 'Ingresa un código de descuento.',
+    discount: 'Descuento',
+    finalTotal: 'Total final',
+    processingPayment: 'Procesando pago...',
+    paymentGatewayMessage: 'Validando pago simulado en la pasarela Monolith.',
+    paymentApproved: 'Pago aprobado',
+    paymentRejected: 'No se pudo procesar el pago.',
+    serverError: 'Ocurrió un error en el servidor. Intenta nuevamente.',
+
+    // Administrador
+    navAdmin: 'ADMIN',
+    admin: 'Administrador',
+    adminPanel: 'Panel administrador',
+    adminDashboard: 'Dashboard administrador',
+    adminAccessDenied: 'No tienes permisos para acceder al panel administrador.',
+    adminLoading: 'CARGANDO PANEL ADMIN...',
+    adminSummary: 'Resumen general',
+    adminSales: 'Ventas',
+    adminOrders: 'Pedidos',
+    adminUsers: 'Usuarios',
+    adminProducts: 'Productos',
+    adminStock: 'Stock',
+    adminLowStock: 'Stock bajo',
+    adminCreateProduct: 'Crear producto',
+    adminEditProduct: 'Editar producto',
+    adminDeleteProduct: 'Eliminar producto',
+    adminUpdateStock: 'Actualizar stock',
+    adminChangeOrderStatus: 'Cambiar estado',
+    adminActivateUser: 'Activar usuario',
+    adminDeactivateUser: 'Desactivar usuario',
+    adminGiveAdmin: 'Dar rol administrador',
+    adminRemoveAdmin: 'Quitar rol administrador',
+    adminProductCreated: 'Producto creado correctamente.',
+    adminProductUpdated: 'Producto actualizado correctamente.',
+    adminProductDeleted: 'Producto eliminado correctamente.',
+    adminOrderUpdated: 'Pedido actualizado correctamente.',
+    adminUserUpdated: 'Usuario actualizado correctamente.',
+    adminNoProducts: 'No hay productos registrados.',
+    adminNoOrders: 'No hay pedidos registrados.',
+    adminNoUsers: 'No hay usuarios registrados.',
+    adminStatus: 'Estado',
+    adminActions: 'Acciones',
+    adminRole: 'Rol',
+    adminNormalUser: 'Usuario',
+    adminStaffUser: 'Administrador',
+    adminActive: 'Activo',
+    adminInactive: 'Inactivo',
+    adminConfirmDeleteProduct: '¿Seguro que quieres eliminar este producto?',
+    adminConfirmDeactivateUser: '¿Seguro que quieres desactivar este usuario?',
+
+    // Categorías/subcategorías dinámicas desde Django
+    categoryLabels: {
+      casual: "Casual",
+      role_playing: "Rol",
+      massively_multiplayer: "Multijugador masivo",
+      board_games: "Juegos de mesa",
+      educational: "Educativos",
+      family: "Familiares",
+      arcade: "Arcade",
+
+      accesorios: 'Accesorios',
+      accessory: 'Accesorios',
+      accessories: 'Accesorios',
+      consolas: 'Consolas',
+      consola: 'Consolas',
+      consoles: 'Consolas',
+      juegos: 'Juegos',
+      juego: 'Juegos',
+      games: 'Juegos',
+      accion: 'Acción',
+      acción: 'Acción',
+      action: 'Acción',
+      adventure: 'Aventura',
+      aventura: 'Aventura',
+      fps: 'FPS',
+      shooter: 'FPS',
+      rpg: 'RPG',
+      roleplaying: 'RPG',
+      rol: 'RPG',
+      deportes: 'Deportes',
+      sports: 'Deportes',
+      terror: 'Terror',
+      horror: 'Terror',
+      carreras: 'Carreras',
+      racing: 'Carreras',
+      estrategia: 'Estrategia',
+      strategy: 'Estrategia',
+      simulacion: 'Simulación',
+      simulación: 'Simulación',
+      simulation: 'Simulación',
+      lucha: 'Lucha',
+      fighting: 'Lucha',
+      plataformas: 'Plataformas',
+      platformer: 'Plataformas',
+      indie: 'Indie',
+      puzzle: 'Puzzle',
+      mundo_abierto: 'Mundo abierto',
+      open_world: 'Mundo abierto'
+    },
+
+    platformLabels: {
+      'nintendo-switch': 'Nintendo Switch',
+      nintendo_switch: 'Nintendo Switch',
+      'nintendo switch': 'Nintendo Switch',
+      switch: 'Nintendo Switch',
+      pc: 'PC',
+      'playstation-5': 'PlayStation 5',
+      playstation_5: 'PlayStation 5',
+      'playstation 5': 'PlayStation 5',
+      ps5: 'PlayStation 5',
+      'xbox-series-x': 'Xbox Series X',
+      xbox_series_x: 'Xbox Series X',
+      'xbox series x': 'Xbox Series X',
+      xbox: 'Xbox Series X'
+    },
+
+    specLabels: {
+      peso_max: "Peso máximo",
+      reclinacion: "Reclinación",
+      reposabrazos: "Reposabrazos",
+      layout: "Distribución",
+      driver: "Transductor",
+      material: "Material",
+
+      almacenamiento: "Almacenamiento",
+      resolucion: "Resolución",
+      pantalla: "Pantalla",
+      bateria: "Batería",
+      color: "Color",
+      conectividad: "Conectividad",
+      peso: "Peso",
+      microfono: "Micrófono",
+      conexion: "Conexión",
+      iluminacion: "Iluminación",
+      tipo: "Tipo",
+      compatibilidad: "Compatibilidad",
+      botones: "Botones",
+
+
+      genero: 'Género',
+      género: 'Género',
+      genre: 'Género',
+      lanzamiento: 'Lanzamiento',
+      release: 'Lanzamiento',
+      release_date: 'Lanzamiento',
+      rating: 'Rating',
+      metacritic: 'Metacritic',
+      developer: 'Desarrollador',
+      desarrollador: 'Desarrollador',
+      publisher: 'Distribuidor',
+      distribuidor: 'Distribuidor',
+      mode: 'Modo',
+      modo: 'Modo',
+      players: 'Jugadores',
+      jugadores: 'Jugadores'
+    }
+
+  },
+
+  en: {
+    dateFrom: "From", dateTo: "To",
+    ordersTag: "Orders // History",
+    orderDetailTag: "Order // Details",
+    checkoutTag: "Purchase // Simulated payment",
+    emailExample: "email@example.com",
+    validationRequired: "Please complete this field.",
+    validationEmail: "Enter a valid email address.",
+    validationInvalid: "Check the value you entered.",
+    validationShort: "The text is too short.",
+    addressField: "Address",
+    quantityField: "Quantity",
+    paymentField: "Payment",
+    errorField: "Error",
+    receiptPrefix: "receipt",
+    yes: "Yes",
+    no: "No",
+    orderNotCancelable: "This order can no longer be cancelled.",
+    serverFailureTitle: "Service unavailable",
+    specSinglePlayer: "Single player",
+    specMultiplayer: "Multiplayer",
+
+    accessRequired: "Sign-in required",
+    adminSignIn: "Sign in to access the admin panel.",
+    adminIntro: "Manage products, inventory, orders and users.",
+    adminSession: "Admin session",
+    adminMonolith: "Monolith dashboard",
+    adminTotalSales: "Total sales",
+    adminTodaySales: "Today’s sales",
+    adminLatestOrders: "Latest orders",
+    orderNumber: "Number",
+    customer: "Customer",
+    units: "units",
+    adminLowStockProducts: "Low-stock products",
+    productName: "Name",
+    description: "Description",
+    price: "Price",
+    originalPrice: "Original price",
+    imageUrl: "Image URL",
+    inventory: "Inventory",
+    searchProduct: "Search products...",
+    manageOrders: "Order management",
+    searchAdminOrders: "Search by number, customer or email...",
+    allStatuses: "All statuses",
+    searchUser: "Search users...",
+    saving: "Saving...",
+    deleted: "Deleted",
+    locked: "Locked",
+    deletedAccountLocked: "Deleted accounts cannot be changed.",
+    cannotChangeDeleted: "You cannot change a deleted account.",
+    cannotRemoveOwnAdmin: "You cannot remove your own administrator role.",
+    cannotDeactivateOwnAdmin: "You cannot deactivate your own administrator account.",
+    cannotDeactivateSelf: "You cannot deactivate your own account.",
+    cannotRemoveOwnRole: "You cannot remove your own administrator role.",
+    fakeGatewayInfo: "Connecting to the Monolith simulated payment gateway.",
+    creatingOrder: "Confirming your order...",
+    apply: "Apply",
+    appliedCoupon: "Coupon applied",
+    cannotCancelOrder: "This order can no longer be cancelled.",
+    printUnavailable: "Automatic printing could not be opened. Download the receipt and open it to print.",
+    networkError: "Network error. Check your connection.",
+    descriptionUnavailable: "An official English description is not available.",
+    specUnavailable: "Localized information is unavailable.",
+    timelineUpdate: "Order status updated.",
+    paymentPending: "Pending",
+    paymentApprovedStatus: "Approved",
+    paymentRejectedStatus: "Declined",
+    paymentRefunded: "Refunded",
+
+    skipContent: 'Skip to content', changeLanguage: 'Change language', pageNotFound: 'This page does not exist.',
+    estimatedDelivery: 'Estimated delivery',
+    retry: 'Retry', filtersUnavailable: 'Filters could not be loaded.',
+    priceRange: 'Price (S/)', minimumPrice: 'Minimum price', maximumPrice: 'Maximum price',
+    applyFilters: 'Apply prices', resetFilters: 'Clear filters', priceRangeInvalid: 'Check the price range.',
+    relevance: 'Relevance', searchMinimum: 'Enter at least two characters.',
+    pagination: 'Catalog pagination', previousPage: 'Previous', nextPage: 'Next', page: 'Page', showing: 'Showing',
+    searchOrders: 'Search by order number', backToOrders: 'Back to my orders',
+    orderStatusLabel: 'Order status', actions: 'Actions', productsLabel: 'Products',
+    downloadReceipt: 'Download receipt', preparingReceipt: 'Preparing receipt...', printReceipt: 'Print',
+    cancelOrder: 'Cancel order', cancellingOrder: 'Cancelling order...', confirmCancelOrder: 'Are you sure you want to cancel this order?',
+    orderCancelledNotice: 'Order cancelled successfully.', confirmationText: 'Your order was created successfully.',
+    appName: 'MONOLITH',
+
+    // Navigation
+    catalog: 'THE CATALOG',
+    cart: 'YOUR CART',
+    login: 'LOGIN',
+    logout: 'Logout',
+    profile: 'Profile',
+    register: 'Create account',
+    navCatalog: 'THE CATALOG',
+    navCart: 'YOUR CART',
+    navProfile: 'PROFILE',
+
+    // Catalog and filters
+    filters: 'Filters',
+    platform: 'Platform',
+    platforms: 'Platforms',
+    category: 'Category',
+    categories: 'Categories',
+    all: 'All',
+    search: 'Search',
+    clear: 'Clear',
+    sort: 'Sort:',
+    popular: 'Most popular',
+    popularity: 'Popularity',
+    priceAsc: 'Price: low to high',
+    priceDesc: 'Price: high to low',
+    recent: 'Newest',
+    lowerPrice: 'Lowest price',
+    higherPrice: 'Highest price',
+    found: 'products found',
+    noResults: 'No results',
+    productsCatalog: 'Products // Catalog',
+    searchPlaceholder: 'Search games, consoles, accessories... (2+ letters)',
+    suggestionsTitle: 'Search results',
+    exploreBy: 'Explore by...',
+    seeAll: 'See all',
+    viewDetail: 'View details',
+    noSuggestions: 'No matches found',
+    loadingCatalog: 'LOADING CATALOG...',
+
+    // Products
+    addCart: 'Add',
+    addToCart: 'Add to cart',
+    available: 'Available',
+    outStock: 'Out of stock',
+    stock: 'Stock',
+    inCart: 'In cart',
+    currentPrice: 'Current price',
+    priceChanged: 'Price changed since you added it',
+    insufficientStock: 'Insufficient stock',
+    stockAvailable: 'Available stock',
+    imagePreview: 'Image preview',
+    similarProducts: 'Similar products',
+    frequentlyBought: 'Frequently bought together',
+    noSimilar: 'No similar suggestions.',
+    noBundles: 'No bundles available.',
+    productDetail: 'Product // Detail',
+    loadingProduct: 'LOADING PRODUCT...',
+    back: 'Back',
+    backToCatalog: '← Catalog',
+    productImage: 'Product',
+    specs: 'Specs',
+    notAvailable: 'N/A',
+    noDescription: 'No description.',
+
+    // Cart
+    cartSprint: 'Cart',
+    quickCatalogFromCart: 'Quick catalog from cart',
+    quickSearchPlaceholder: 'Search to add more products...',
+    allPlatforms: 'All platforms',
+    allCategories: 'All categories',
+    alreadyHave: 'Already have',
+    addedToCart: 'Product added to cart.',
+    emptyCart: 'Empty cart',
+    emptyCartMessage: 'You do not have any products in your cart yet.',
+    goToCatalog: 'Go to catalog',
+    groupFilterSort: 'Group, filter and sort:',
+    allTypes: 'All types',
+    recentlyAdded: 'Recently added',
+    subtotal: 'Subtotal',
+    compatibility: 'Compatibility',
+    compatibilityOk: 'Products are mutually compatible.',
+    compatibilityWarn: 'Review compatibility: not all products share the same platform.',
+    commonPlatform: 'Common platform',
+    suggestions: 'Suggestions',
+    total: 'Total',
+    empty: 'Clear',
+    confirmOrder: 'Continue to checkout',
+    checkout: 'Checkout',
+    shippingAddress: 'Shipping address',
+    useSavedAddress: 'Use saved address',
+    newAddress: 'New address',
+    paymentMethod: 'Payment method',
+    orderSummary: 'Order summary',
+    payAndConfirm: 'Pay and confirm',
+    processing: 'Processing...',
+    backToCart: 'Back to cart',
+    card: 'Card',
+    transfer: 'Transfer',
+    transferInfo: 'Simulated transfer payment. The system will automatically approve the order for the project.',
+    cardNumber: 'Card number',
+    simulatedPaymentOnly: 'Academic demo: 100% simulated payment. Fictional data is prefilled; never enter real banking information.',
+    cardName: 'Name on card',
+    cardExpiration: 'MM/YY',
+    cardCvv: 'CVV',
+    orderConfirmed: 'Order confirmed',
+    viewOrderDetail: 'View detail',
+    myOrders: 'My orders',
+    delete: 'Delete',
+    loadingCart: 'LOADING CART...',
+    searchCartPlaceholder: 'Search inside cart...',
+    noCartMatches: 'No cart items match the filters.',
+    cartCleared: 'Cart cleared successfully.',
+    cartItemRemoved: 'Product removed from cart.',
+    confirmRemoveCartItem: 'Are you sure you want to remove this product from your cart?',
+    confirmClearCart: 'Are you sure you want to clear your entire cart?',
+    orderCreated: 'Order created successfully.',
+    checkoutStockError: 'There is not enough stock to complete the order.',
+    checkoutEmptyError: 'The cart is empty.',
+    nameAsc: 'Name A-Z',
+    noCategory: 'No category',
+    loading: 'Loading...',
+
+    // Auth - login
+    email: 'Email',
+    password: 'Password',
+    remember: 'Remember me 7 days',
+    forgot: 'Forgot password?',
+    newHere: 'New here?',
+    create: 'Create account',
+    signIn: 'Sign in',
+    haveAccount: 'Already have an account?',
+    loginTag: 'Authentication // Access',
+    loginTitle: 'Authenticate',
+    loginSubtitle: 'Enter your credentials to continue.',
+    loginHeroTitle: 'Ascend to true power',
+    loginHeroSubtitle: 'Monolith Gaming Store. Access your arsenal.',
+    systemOnline: 'System online',
+    awaitingAuthentication: 'Awaiting authentication',
+    emailPlaceholder: 'marco.figueroa@...',
+
+    // Auth - register
+    registerTag: 'Authentication // Register',
+    registerHeroTitle: 'Create your arsenal',
+    registerHeroSubtitle: 'Create your account and verify your email.',
+    registerModule: 'Register module',
+    smtpReady: 'SMTP ready',
+    name: 'Full name',
+    phone: 'Phone',
+    confirm: 'Confirm password',
+
+    // Recovery/verification
+    forgotTag: 'Password // Recovery',
+    forgotTitle: 'Recover access',
+    sendLink: 'Send link',
+    resetTag: 'Password // Reset',
+    resetTitle: 'New password',
+    update: 'Update',
+    verifyTag: 'Email // Verification',
+    verifyTitle: 'Verify email',
+    verifying: 'VERIFYING...',
+    goToLogin: 'Go to login',
+    verifyMail: 'Email verification',
+    resend: 'Resend verification',
+
+    // Session
+    close: 'Close',
+    cancel: 'Cancel',
+    yesLogout: 'Yes, logout',
+    logoutTitle: 'Logout?',
+    logoutText: 'Confirm to protect your account before leaving.',
+    sessionSecurity: 'Session // Security',
+
+    // Profile
+    profileTitle: 'Profile',
+    accountTag: 'User // Account',
+    save: 'Save',
+    language: 'Language',
+    profileData: 'Profile data',
+    profileUpdated: 'Profile updated successfully.',
+    emailNotVerified: 'Email not verified.',
+    recentActivity: 'Recent activity',
+    verifiedEmail: 'Verified email',
+    pendingEmail: 'Pending email',
+    emailAuthStatus: 'Email authentication status',
+    savedAddresses: 'Saved addresses',
+    visibleOrders: 'Visible orders',
+    noOrders: 'No orders',
+    lastRegisteredStatus: 'Last registered status',
+
+    // Password from profile
+    changePassword: 'Change password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    updatePassword: 'Update password',
+
+    // Addresses
+    addresses: 'Addresses',
+    street: 'Street',
+    city: 'City',
+    department: 'Department',
+    postalCode: 'Postal code',
+    defaultAddress: 'Default',
+    saveChanges: 'Save changes',
+    add: 'Add',
+    cancelEdit: 'Cancel editing',
+    edit: 'Edit',
+    addressAdded: 'Address added.',
+    addressUpdated: 'Address updated.',
+    addressDeleted: 'Address deleted.',
+
+    // Orders
+    orders: 'Orders',
+    filter: 'Filter',
+    noRegisteredOrders: 'No registered orders.',
+    orderAll: 'All',
+    orderPending: 'Pending',
+    orderProcessing: 'Processing',
+    orderShipped: 'Shipped',
+    orderDelivered: 'Delivered',
+    orderCancelled: 'Cancelled',
+
+    // Delete account
+    deleteAccount: 'Delete account',
+    deleteAccountConfirm: 'Are you sure you want to delete your account?',
+    deletePasswordPlaceholder: 'Password to confirm',
+    deleteForever: 'Delete permanently',
+
+
+    // Notifications / Firebase
+    sending: 'Sending...',
+    updating: 'Updating...',
+    refreshStatus: 'Refresh status',
+    verificationEmailSent: 'New verification link sent. Check your inbox.',
+    emailAlreadyVerified: 'Your email is already verified.',
+    emailVerifiedNow: 'Email verified successfully.',
+    emailStillPending: 'Your email is still pending. Open the Firebase link and refresh again.',
+    emailStatusRefreshed: 'Email status refreshed.',
+    passwordUpdated: 'Password updated successfully.',
+    passwordRequiredToDelete: 'You must enter your password to delete your account.',
+    passwordResetEmailSent: 'If the email is registered, you will receive a password reset link.',
+    passwordResetDone: 'Password reset successfully. You can now sign in.',
+    accountCreatedCheckEmail: 'Account created. Check your email to verify it.',
+    passwordsDontMatch: 'Passwords do not match.',
+    emailAlreadyInUse: 'This email is already registered.',
+    weakPassword: 'The password must have at least 8 characters.',
+    invalidLogin: 'Incorrect email or password.',
+    userNotFound: 'No account exists with this email.',
+    tooManyRequests: 'Too many attempts. Try again later.',
+    sessionExpiredLoginAgain: 'Your Firebase session expired. Log out and sign in again.',
+    firebaseLoading: 'Loading Firebase session. Try again in a few seconds.',
+    firebaseVerificationInfo: 'Verification is handled by Firebase. Open the link sent to your email, then sign in again.',
+
+    // Coupons and simulated payment
+    discountCode: 'Discount code',
+    discountCodePlaceholder: 'Enter your coupon',
+    applyCoupon: 'Apply',
+    removeCoupon: 'Remove coupon',
+    coupon: 'Coupon',
+    couponApplied: 'Coupon applied',
+    couponRemoved: 'Coupon removed',
+    couponInvalid: 'Invalid discount code.',
+    couponEmptyCart: 'You cannot apply a coupon to an empty cart.',
+    couponRequired: 'Enter a discount code.',
+    discount: 'Discount',
+    finalTotal: 'Final total',
+    processingPayment: 'Processing payment...',
+    paymentGatewayMessage: 'Validating simulated payment in the Monolith gateway.',
+    paymentApproved: 'Payment approved',
+    paymentRejected: 'The payment could not be processed.',
+    serverError: 'A server error occurred. Please try again.',
+
+    // Administrator
+    navAdmin: 'ADMIN',
+    admin: 'Administrator',
+    adminPanel: 'Admin panel',
+    adminDashboard: 'Admin dashboard',
+    adminAccessDenied: 'You do not have permission to access the admin panel.',
+    adminLoading: 'LOADING ADMIN PANEL...',
+    adminSummary: 'General summary',
+    adminSales: 'Sales',
+    adminOrders: 'Orders',
+    adminUsers: 'Users',
+    adminProducts: 'Products',
+    adminStock: 'Stock',
+    adminLowStock: 'Low stock',
+    adminCreateProduct: 'Create product',
+    adminEditProduct: 'Edit product',
+    adminDeleteProduct: 'Delete product',
+    adminUpdateStock: 'Update stock',
+    adminChangeOrderStatus: 'Change status',
+    adminActivateUser: 'Activate user',
+    adminDeactivateUser: 'Deactivate user',
+    adminGiveAdmin: 'Give admin role',
+    adminRemoveAdmin: 'Remove admin role',
+    adminProductCreated: 'Product created successfully.',
+    adminProductUpdated: 'Product updated successfully.',
+    adminProductDeleted: 'Product deleted successfully.',
+    adminOrderUpdated: 'Order updated successfully.',
+    adminUserUpdated: 'User updated successfully.',
+    adminNoProducts: 'No products registered.',
+    adminNoOrders: 'No orders registered.',
+    adminNoUsers: 'No users registered.',
+    adminStatus: 'Status',
+    adminActions: 'Actions',
+    adminRole: 'Role',
+    adminNormalUser: 'User',
+    adminStaffUser: 'Administrator',
+    adminActive: 'Active',
+    adminInactive: 'Inactive',
+    adminConfirmDeleteProduct: 'Are you sure you want to delete this product?',
+    adminConfirmDeactivateUser: 'Are you sure you want to deactivate this user?',
+
+    // Dynamic categories/subcategories from Django
+    categoryLabels: {
+      casual: "Casual",
+      role_playing: "Role-playing",
+      massively_multiplayer: "Massively multiplayer",
+      board_games: "Board games",
+      educational: "Educational",
+      family: "Family",
+      arcade: "Arcade",
+
+      accesorios: 'Accessories',
+      accessory: 'Accessories',
+      accessories: 'Accessories',
+      consolas: 'Consoles',
+      consola: 'Consoles',
+      consoles: 'Consoles',
+      juegos: 'Games',
+      juego: 'Games',
+      games: 'Games',
+      accion: 'Action',
+      acción: 'Action',
+      action: 'Action',
+      adventure: 'Adventure',
+      aventura: 'Adventure',
+      fps: 'FPS',
+      shooter: 'FPS',
+      rpg: 'RPG',
+      roleplaying: 'RPG',
+      rol: 'RPG',
+      deportes: 'Sports',
+      sports: 'Sports',
+      terror: 'Horror',
+      horror: 'Horror',
+      carreras: 'Racing',
+      racing: 'Racing',
+      estrategia: 'Strategy',
+      strategy: 'Strategy',
+      simulacion: 'Simulation',
+      simulación: 'Simulation',
+      simulation: 'Simulation',
+      lucha: 'Fighting',
+      fighting: 'Fighting',
+      plataformas: 'Platformer',
+      platformer: 'Platformer',
+      indie: 'Indie',
+      puzzle: 'Puzzle',
+      mundo_abierto: 'Open world',
+      open_world: 'Open world'
+    },
+
+    platformLabels: {
+      'nintendo-switch': 'Nintendo Switch',
+      nintendo_switch: 'Nintendo Switch',
+      'nintendo switch': 'Nintendo Switch',
+      switch: 'Nintendo Switch',
+      pc: 'PC',
+      'playstation-5': 'PlayStation 5',
+      playstation_5: 'PlayStation 5',
+      'playstation 5': 'PlayStation 5',
+      ps5: 'PlayStation 5',
+      'xbox-series-x': 'Xbox Series X',
+      xbox_series_x: 'Xbox Series X',
+      'xbox series x': 'Xbox Series X',
+      xbox: 'Xbox Series X'
+    },
+
+    specLabels: {
+      peso_max: "Weight limit",
+      reclinacion: "Recline",
+      reposabrazos: "Armrests",
+      layout: "Layout",
+      driver: "Driver",
+      material: "Material",
+
+      almacenamiento: "Storage",
+      resolucion: "Resolution",
+      pantalla: "Display",
+      bateria: "Battery",
+      color: "Color",
+      conectividad: "Connectivity",
+      peso: "Weight",
+      microfono: "Microphone",
+      conexion: "Connection",
+      iluminacion: "Lighting",
+      tipo: "Type",
+      compatibilidad: "Compatibility",
+      botones: "Buttons",
+
+      genero: 'Genre',
+      género: 'Genre',
+      genre: 'Genre',
+      lanzamiento: 'Release date',
+      release: 'Release date',
+      release_date: 'Release date',
+      rating: 'Rating',
+      metacritic: 'Metacritic',
+      developer: 'Developer',
+      desarrollador: 'Developer',
+      publisher: 'Publisher',
+      distribuidor: 'Publisher',
+      mode: 'Mode',
+      modo: 'Mode',
+      players: 'Players',
+      jugadores: 'Players'
+    }
+  }
+}
+
+export function normalizeI18nKey(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
+function readLabel(value) {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value.slug || value.nombre || value.name || value.titulo || value.title || ''
+}
+
+function readOriginalName(value) {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value.nombre || value.name || value.slug || value.titulo || value.title || ''
+}
+
+function translateFromMap(t, mapName, value) {
+  const raw = readLabel(value)
+  const original = readOriginalName(value)
+  const normalized = normalizeI18nKey(raw)
+  const direct = String(raw).trim().toLowerCase()
+
+  return (
+    t?.[mapName]?.[raw] ||
+    t?.[mapName]?.[direct] ||
+    t?.[mapName]?.[normalized] ||
+    original
+  )
+}
+
+export function getTranslatedCategory(t, category) {
+  return translateFromMap(t, 'categoryLabels', category)
+}
+
+export function getTranslatedPlatform(t, platform) {
+  return translateFromMap(t, 'platformLabels', platform)
+}
+
+export function getTranslatedSpec(t, specKey) {
+  return translateFromMap(t, 'specLabels', specKey)
+}
+
+export function getTranslatedOrderStatus(t, status) {
+  const key = normalizeI18nKey(status)
+  const map = {
+    pendiente: t.orderPending,
+    pending: t.orderPending,
+    procesando: t.orderProcessing,
+    processing: t.orderProcessing,
+    enviado: t.orderShipped,
+    shipped: t.orderShipped,
+    entregado: t.orderDelivered,
+    delivered: t.orderDelivered,
+    cancelado: t.orderCancelled,
+    cancelled: t.orderCancelled,
+    canceled: t.orderCancelled
+  }
+
+  return map[key] || status
+}
+
+export function getTranslatedText(t, text) {
+  if (typeof text === 'string' && text.includes(' | ')) return text.split(' | ').map(part=>getTranslatedText(t,part)).join(' | ')
+  const key = normalizeI18nKey(text)
+  const map = {
+    perfil_actualizado_correctamente: t.profileUpdated,
+    direccion_agregada: t.addressAdded,
+    direccion_actualizada: t.addressUpdated,
+    direccion_eliminada: t.addressDeleted,
+    producto_agregado_al_carrito: t.addedToCart,
+    carrito_vaciado_correctamente: t.cartCleared,
+    cupon_aplicado: t.couponApplied,
+    coupon_applied: t.couponApplied,
+    cupon_aplicado_correctamente: t.couponApplied,
+    coupon_applied_successfully: t.couponApplied,
+    cupon_quitado: t.couponRemoved,
+    coupon_removed: t.couponRemoved,
+    cupon_removido: t.couponRemoved,
+    codigo_de_descuento_invalido: t.couponInvalid,
+    codigo_invalido: t.couponInvalid,
+    invalid_coupon: t.couponInvalid,
+    invalid_discount_code: t.couponInvalid,
+    no_puedes_aplicar_un_cupon_con_el_carrito_vacio: t.couponEmptyCart,
+    cannot_apply_coupon_to_empty_cart: t.couponEmptyCart,
+    ingresa_un_codigo_de_descuento: t.couponRequired,
+    producto_creado_correctamente: t.adminProductCreated,
+    producto_actualizado_correctamente: t.adminProductUpdated,
+    producto_eliminado_correctamente: t.adminProductDeleted,
+    pedido_actualizado_correctamente: t.adminOrderUpdated,
+    usuario_actualizado_correctamente: t.adminUserUpdated,
+    pedido_creado_correctamente: t.orderCreated,
+    el_carrito_esta_vacio: t.checkoutEmptyError,
+    no_hay_stock_suficiente_para_completar_el_pedido: t.checkoutStockError,
+    productos_compatibles_entre_si: t.compatibilityOk || 'Productos compatibles entre sí.',
+    revisa_compatibilidad_no_todos_los_productos_comparten_una_misma_plataforma: t.compatibilityWarn || 'Revisa compatibilidad: no todos los productos comparten una misma plataforma.',
+    sin_descripcion: t.noDescription,
+    sin_pedidos: t.noOrders,
+    nuevo_enlace_enviado_a_marco_figueroa_tecsup_edu_pe: t.verificationEmailSent,
+    nuevo_enlace_enviado_a: t.verificationEmailSent,
+    cuenta_creada_revisa_tu_correo_para_verificarla: t.accountCreatedCheckEmail,
+    auth_email_already_in_use: t.emailAlreadyInUse,
+    email_already_in_use: t.emailAlreadyInUse,
+    auth_weak_password: t.weakPassword,
+    weak_password: t.weakPassword,
+    auth_invalid_credential: t.invalidLogin,
+    invalid_credential: t.invalidLogin,
+    auth_wrong_password: t.invalidLogin,
+    wrong_password: t.invalidLogin,
+    auth_user_not_found: t.userNotFound,
+    user_not_found: t.userNotFound,
+    auth_too_many_requests: t.tooManyRequests,
+    too_many_requests: t.tooManyRequests,
+    auth_requires_recent_login: t.sessionExpiredLoginAgain,
+    requires_recent_login: t.sessionExpiredLoginAgain,
+    auth_network_request_failed: t.networkError,
+    network_request_failed: t.networkError
+  }
+
+  if (map[key]) return map[key]
+  const server = translateServerMessage(t, text)
+  if (server !== text) return server
+  // Stored timeline descriptions are historical data: localize their presentation.
+  if (/^(estado_actualizado_por|pedido_recibido|pago_simulado_aprobado)/.test(key)) return t.timelineUpdate
+  for (const source of [dict.es, dict.en]) {
+    const entry = Object.entries(source).find(([, value]) => typeof value === 'string' && normalizeI18nKey(value) === key)
+    if (entry) return t[entry[0]]
+  }
+  return text
+}
+
+export function getTranslatedPaymentStatus(t, status) {
+  return ({pending:t.paymentPending, approved:t.paymentApprovedStatus, declined:t.paymentRejectedStatus, refunded:t.paymentRefunded, pendiente:t.paymentPending, aprobado:t.paymentApprovedStatus,
+    rechazado:t.paymentRejectedStatus, reembolsado:t.paymentRefunded})[status] || status
+}
+
+export function localizedDescription(t, product) {
+  const language = t === dict.en ? 'en' : 'es'
+  // Only explicit localized/provider-language content is safe to claim as official.
+  return product[`descripcion_${language}`] || product.descriptions?.[language] ||
+    (product.description_language === language ? product.descripcion : '') || t.descriptionUnavailable
+}
+
+export function localizedSpecValue(t, key, value) {
+  if (Array.isArray(value)) return value.map(v => localizedSpecValue(t, key, v)).join(', ')
+  if (value == null) return t.notAvailable
+  if (/^(n_d|n_a|none|null)$/.test(normalizeI18nKey(value))) return t.notAvailable
+  if (/genre|genero/.test(normalizeI18nKey(key))) return String(value).split(/,\s*/).map(genre=>getTranslatedCategory(t,genre)).join(', ')
+  if (/release|lanzamiento/.test(normalizeI18nKey(key))) return formatDate(value,t)
+  const values = {blanco:['Blanco','White'],negro:['Negro','Black'],si:['Sí','Yes'],no:['No','No'],
+    multijugador:['Multijugador','Multiplayer'],un_jugador:['Un jugador','Single player'],
+    desmontable:['Desmontable','Detachable'],espanol:['Español','Spanish'],recargable:['Recargable','Rechargeable'],
+    mecanicos_rojos:['Mecánicos rojos','Red mechanical'],inalambrico:['Inalámbrico','Wireless']}
+  const mapped = values[normalizeI18nKey(value)]
+  if (mapped) return mapped[t === dict.en ? 1 : 0]
+  if (t === dict.en) return getTranslatedText(t, String(value).replace(/\bhoras\b/g,'hours').replace(/\bprogramables\b/g,'programmable').replace(/\bRecargable\b/g,'Rechargeable'))
+  return getTranslatedText(t, String(value))
+}
+
+export function formatMoney(value, language = localStorage.getItem('lang')) {
+  return new Intl.NumberFormat(language === 'en' ? 'en-US' : 'es-PE', {
+    style:'currency', currency:'PEN', minimumFractionDigits:2
+  }).format(Number(value || 0))
+}
+
+
+function translateServerMessage(t, text) {
+  if (typeof text !== 'string') return text
+  const english = t === dict.en
+  for (const [es, en] of Object.entries(serverMessages)) {
+    if (text === es || text === en) return english ? en : es
+    const source = english ? es : en, target = english ? en : es
+    if (!source.includes('%(')) continue
+    const names = [...source.matchAll(/%\((\w+)\)s/g)].map(m=>m[1])
+    const chunks = source.split(/%\(\w+\)s/).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))
+    const match = text.match(new RegExp('^'+chunks.join('(.*?)')+'$','s'))
+    if (match) return target.replace(/%\((\w+)\)s/g,(_,name)=>match[names.indexOf(name)+1])
+  }
+  return text
+}
+export function formatNumber(value) {
+  return Number(value || 0).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'es-PE', {minimumFractionDigits:2,maximumFractionDigits:2})
+}
+export function formatDate(value, t) {
+  if (!value) return '?'
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? value+'T12:00:00' : value)
+  return Number.isNaN(date.getTime()) ? '?' : date.toLocaleDateString(t === dict.en ? 'en-US' : 'es-PE')
+}
+
+Object.assign(dict.es, featureText.es)
+Object.assign(dict.en, featureText.en)

@@ -1,0 +1,202 @@
+[
+  {
+    "product_id": 11,
+    "name": "The Elder Scrolls VI",
+    "slug": "the-elder-scrolls-vi",
+    "replaces_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+    "replaces_file": "productos/prod_11.png",
+    "url": "",
+    "source_url": "https://bethesda.net/es-ES/news/a-note-from-bethesda-game-studios",
+    "kind": "unavailable"
+  },
+  {
+    "product_id": 12,
+    "name": "Warhammer 40,000: Dawn of War - Definitive Edition",
+    "slug": "warhammer-40000-dawn-of-war-definitive-edition",
+    "replaces_url": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600",
+    "replaces_file": "productos/prod_12.jpg",
+    "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3556750/f60b47fa49e3582f21c39f6b123fb59e2b441292/header.jpg?t=1783120204",
+    "source_url": "https://store.steampowered.com/app/3556750/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 13,
+    "name": "No Case Should Remain Unsolved",
+    "slug": "no-case-should-remain-unsolved",
+    "replaces_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+    "replaces_file": "productos/prod_13.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2676840/header.jpg?t=1747299882",
+    "source_url": "https://store.steampowered.com/app/2676840/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 14,
+    "name": "The Witcher 3: Wild Hunt – Blood and Wine",
+    "slug": "the-witcher-3-wild-hunt-blood-and-wine",
+    "replaces_url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600",
+    "replaces_file": "productos/prod_14.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/378648/88bcde3e71414240678d5591088a7ebfb5e0aaf2/header.jpg?t=1787687969",
+    "source_url": "https://store.steampowered.com/app/378648/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 15,
+    "name": "The Witcher 3 Wild Hunt - Complete Edition",
+    "slug": "the-witcher-3-wild-hunt-complete-edition",
+    "replaces_url": "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=600",
+    "replaces_file": "productos/prod_15.jpg",
+    "url": "https://cdn.thefpsreview.com/wp-content/uploads/2021/07/the-witcher-3-wild-hunter-complete-edition-key-visual-1024x576.jpg.webp",
+    "source_url": "https://www.thewitcher.com/en/newsletter/31-xq6n8b5d",
+    "kind": "cover_art"
+  },
+  {
+    "product_id": 16,
+    "name": "The Witcher 3: Wild Hunt – Hearts of Stone",
+    "slug": "the-witcher-3-wild-hunt-hearts-of-stone",
+    "replaces_url": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
+    "replaces_file": "productos/prod_16.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/378649/48e242724931e89a71474b9f5ca080243e3ac772/header.jpg?t=1787687969",
+    "source_url": "https://store.steampowered.com/app/378649/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 17,
+    "name": "Mass Effect Trilogy",
+    "slug": "mass-effect-trilogy",
+    "replaces_url": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600",
+    "replaces_file": "productos/prod_17.jpg",
+    "url": "https://www.rpgfan.com/wp-content/uploads/2020/07/Mass-Effect-Trilogy-Cover-Art-001-700x525.jpg",
+    "source_url": "https://www.rpgfan.com/gallery/mass-effect-trilogy-cover-art/",
+    "kind": "cover_art"
+  },
+  {
+    "product_id": 18,
+    "name": "That level again 2",
+    "slug": "that-level-again-2",
+    "replaces_url": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600",
+    "replaces_file": "productos/prod_18.jpg",
+    "url": "https://play-lh.googleusercontent.com/0WxAC0bHEPt5ZdzLZe17PLbeBguj5RW2g0nEEhWzCJl27h3BFegSvHyjl4LQsZKQC1r17LcgqeAlEjPMUrAqpg=w512-h512",
+    "source_url": "https://play.google.com/store/apps/details?id=ru.iamtagir.thatlevelagain2.android",
+    "kind": "app_icon"
+  },
+  {
+    "product_id": 19,
+    "name": "Cyberpunk 2077: Phantom Liberty",
+    "slug": "cyberpunk-2077-phantom-liberty",
+    "replaces_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600",
+    "replaces_file": "productos/prod_19.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2138330/bdbeea292270b8cd9dde1f2044a411624db58657/header.jpg?t=1784713876",
+    "source_url": "https://store.steampowered.com/app/2138330/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 20,
+    "name": "Sonic Triple Trouble 16-Bit (NoahNCopeland)",
+    "slug": "sonic-triple-trouble-16-bit-noahncopeland",
+    "replaces_url": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600",
+    "replaces_file": "productos/prod_20.png",
+    "url": "https://static.wixstatic.com/media/89f603_c5240e8cda5c4afebe5238d4080eae1e~mv2.png",
+    "source_url": "https://stt16bit.wixsite.com/sonictripletrouble16",
+    "kind": "official_logo"
+  },
+  {
+    "product_id": 21,
+    "name": "Bloodborne: The Old Hunters",
+    "slug": "bloodborne-the-old-hunters",
+    "replaces_url": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600",
+    "replaces_file": "productos/prod_21.jpg",
+    "url": "https://image.api.playstation.com/cdn/UP9000/CUSA00900_00/b5uuNMulpxnRpWZDG7lPexwMY7i9Pns7.png",
+    "source_url": "https://store.playstation.com/en-us/product/UP9000-CUSA00900_00-SPEXPANSIONDLC03",
+    "kind": "store_cover"
+  },
+  {
+    "product_id": 22,
+    "name": "The Binding of Isaac: Repentance",
+    "slug": "the-binding-of-isaac-repentance",
+    "replaces_url": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+    "replaces_file": "productos/prod_22.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1426300/header.jpg?t=1732645274",
+    "source_url": "https://store.steampowered.com/app/1426300/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 23,
+    "name": "Guilty Parade",
+    "slug": "guilty-parade",
+    "replaces_url": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600",
+    "replaces_file": "productos/prod_23.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1167170/header_alt_assets_3.jpg?t=1777126727",
+    "source_url": "https://store.steampowered.com/app/1167170/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 24,
+    "name": "Victoria 2: Heart of Darkness",
+    "slug": "victoria-2-heart-of-darkness",
+    "replaces_url": "https://images.unsplash.com/photo-1524654458049-e36be0721fa2?w=600",
+    "replaces_file": "productos/prod_24.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/215001/header.jpg?t=1622805923",
+    "source_url": "https://store.steampowered.com/app/215001/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 25,
+    "name": "The Last Of Us Remastered",
+    "slug": "the-last-of-us-remastered",
+    "replaces_url": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600",
+    "replaces_file": "productos/prod_25.jpg",
+    "url": "https://image.api.playstation.com/vulcan/img/rnd/202010/2716/wYq1UsVEyQp6dT6cS1omgKiJ.png",
+    "source_url": "https://store.playstation.com/en-us/product/UP9000-CUSA00552_00-THELASTOFUS00000",
+    "kind": "store_cover"
+  },
+  {
+    "product_id": 26,
+    "name": "The Last of Us Part I",
+    "slug": "the-last-of-us-part-i",
+    "replaces_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+    "replaces_file": "productos/prod_26.jpg",
+    "url": "https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/JKqkaz5Sy6AvH2fZAVdjTxR8.png",
+    "source_url": "https://store.playstation.com/en-us/product/UP9000-PPSA03396_00-THELASTOFUSPART1",
+    "kind": "store_cover"
+  },
+  {
+    "product_id": 27,
+    "name": "Esoteric Ebb",
+    "slug": "esoteric-ebb",
+    "replaces_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600",
+    "replaces_file": "productos/prod_27.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2057760/3fc3e737678a0d5db6816609bec2c9c6f2c11a88/header.jpg?t=1793963426",
+    "source_url": "https://store.steampowered.com/app/2057760/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 28,
+    "name": "Control Resonant",
+    "slug": "control-resonant",
+    "replaces_url": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600",
+    "replaces_file": "productos/prod_28.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/3669870/1e0c76e4253d347bb1304c3f213570251d924edf/header.jpg?t=1793357289",
+    "source_url": "https://store.steampowered.com/app/3669870/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 29,
+    "name": "Red Matter 2",
+    "slug": "red-matter-2",
+    "replaces_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+    "replaces_file": "productos/prod_29.jpg",
+    "url": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2081470/header.jpg?t=1786721453",
+    "source_url": "https://store.steampowered.com/app/2081470/",
+    "kind": "store_header"
+  },
+  {
+    "product_id": 30,
+    "name": "I Expect You To Die 2: The Spy and the Liar",
+    "slug": "i-expect-you-to-die-2-the-spy-and-the-liar",
+    "replaces_url": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600",
+    "replaces_file": "productos/prod_30.jpg",
+    "url": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1499120/3188f255ef30caf1a8cde953b7da38156da18991/header.jpg?t=1759936801",
+    "source_url": "https://store.steampowered.com/app/1499120/",
+    "kind": "store_header"
+  }
+]

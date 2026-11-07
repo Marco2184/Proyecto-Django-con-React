@@ -1,0 +1,135 @@
+name: monolith-verification
+
+x-verification-environment: &verification-environment
+  MONOLITH_DOCKER_VERIFICATION: "1"
+  DJANGO_SETTINGS_MODULE: docker.verification_settings
+  DATABASE_URL: ""
+  TEST_DATABASE_URL: postgresql://monolith_verify:isolated-verification-only@postgres-test:5432/monolith_verification
+  SECRET_KEY: verification-only-django-secret-000000000000000000000
+  JWT_SHARED_SECRET: verification-only-shared-secret-000000000000000000000
+  TEST_JWT_SHARED_SECRET: verification-only-shared-secret-000000000000000000000
+  DEBUG: "False"
+
+services:
+  postgres-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: monolith_verification
+      POSTGRES_USER: monolith_verify
+      POSTGRES_PASSWORD: isolated-verification-only
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monolith_verify -d monolith_verification"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  media-init:
+    image: monolith-verify-django:local
+    pull_policy: never
+    user: root
+    command: ["chown", "-R", "app:app", "/app/media"]
+    volumes:
+      - verification_media:/app/media
+    restart: "no"
+
+  django:
+    image: monolith-verify-django:local
+    build: .
+    environment: *verification-environment
+    command:
+      - sh
+      - -c
+      - >-
+        python manage.py migrate --noinput &&
+        python manage.py shell < docker/seed_verification.py &&
+        python manage.py collectstatic --noinput &&
+        exec gunicorn monolith.wsgi:application --bind 0.0.0.0:8000
+        --workers 2 --timeout 60 --access-logfile -
+        --access-logformat '%(m)s %(s)s %(L)s'
+    ports:
+      - "127.0.0.1:18001:8000"
+    volumes:
+      - verification_media:/app/media
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      media-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/__verification__/')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  mongo:
+    image: mongo:7
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  node:
+    image: monolith-verify-node:local
+    build: ./catalog-service
+    environment:
+      PORT: "4000"
+      NODE_ENV: production
+      JWT_SHARED_SECRET: verification-only-shared-secret-000000000000000000000
+      JWT_REFRESH_SECRET: verification-only-refresh-secret-000000000000000000000
+      DJANGO_API_URL: http://django:8000/api
+      ALLOWED_ORIGINS: http://127.0.0.1:13001,http://localhost:13001
+      COOKIE_SECURE: "false"
+      COOKIE_SAME_SITE: lax
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: monolith_verification
+    ports:
+      - "127.0.0.1:14001:4000"
+    depends_on:
+      django:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    init: true
+
+  frontend:
+    image: monolith-verify-frontend:local
+    build: ./frontend
+    ports:
+      - "127.0.0.1:13001:80"
+    volumes:
+      - verification_media:/media:ro
+    depends_on:
+      django:
+        condition: service_healthy
+      node:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  tests:
+    profiles: ["checks"]
+    image: monolith-verify-django:local
+    environment: *verification-environment
+    volumes:
+      - ./tests:/app/tests:ro
+    command: ["python", "manage.py", "test", "tests", "--verbosity", "2"]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+volumes:
+  verification_media:

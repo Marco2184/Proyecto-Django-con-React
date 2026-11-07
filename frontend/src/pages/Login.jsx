@@ -1,0 +1,90 @@
+import { getTranslatedText } from '../i18n'
+import { useMemo, useState } from 'react'
+import { authApi, getApiError } from '../services/api'
+
+export default function Login({ t, onNavigate, onAuth, lang, toggleLang }) {
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const heroLines = useMemo(() => {
+    if (lang === 'es') return ['ASCIENDE', 'AL', 'VERDADERO', 'PODER']
+    return ['ASCEND', 'TO', 'TRUE', 'POWER']
+  }, [lang])
+
+  const submit = async (event) => {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const { data } = await authApi.post('/auth/login', form)
+
+      onAuth(data.access, data.user)
+    } catch (err) {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError(t.invalidLogin)
+      } else if (err.code === 'auth/user-not-found') {
+        setError(t.userNotFound)
+      } else if (err.code === 'auth/too-many-requests') {
+        setError(t.tooManyRequests)
+      } else {
+        setError(getApiError(err))
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="auth-split">
+      <section className="auth-hero">
+        <div className="mono-line">// {t.appName} //</div>
+        <h1>
+          {heroLines[0]}<br />{heroLines[1]}<br />
+          <span>{heroLines[2]}<br />{heroLines[3]}</span>
+        </h1>
+        <div className="hero-sep" />
+        <p>{t.loginHeroSubtitle}</p>
+        <div className="terminal-box">
+          &gt; {t.systemOnline}<br />
+          &gt; Firebase Auth<br />
+          &gt; _
+        </div>
+        <div className="lang-switch">
+          <button className={lang === 'es' ? 'active' : ''} onClick={() => { if (lang !== 'es') toggleLang() }}>ES</button>
+          <button className={lang === 'en' ? 'active' : ''} onClick={() => { if (lang !== 'en') toggleLang() }}>EN</button>
+        </div>
+      </section>
+
+      <section className="auth-panel">
+        <div className="section-tag">{t.loginTag}</div>
+        <h2>{t.loginTitle}</h2>
+        <p className="muted">{t.loginSubtitle}</p>
+
+        {error && <div className="alert error">{getTranslatedText(t, error)}</div>}
+
+        <form onSubmit={submit} className="form-stack">
+          <label htmlFor="login-email">{t.email}</label>
+          <input id="login-email" className="input-m" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t.emailPlaceholder} type="email" required />
+
+          <label htmlFor="login-password">{t.password}</label>
+          <input id="login-password" className="input-m" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder={t.password} type="password" required />
+
+          <div className="row-between">
+            <button type="button" className="link-neon" onClick={() => onNavigate('forgot')}>{t.forgot}</button>
+          </div>
+
+          <button className="btn-neon w-100" disabled={loading}>
+            {loading ? '...' : t.signIn}
+          </button>
+        </form>
+
+        <div className="auth-foot">
+          {t.newHere}{' '}
+          <button className="link-neon" onClick={() => onNavigate('register',{next:new URLSearchParams(window.location.search).get('next')})}>{t.create}</button>
+        </div>
+      </section>
+    </div>
+  )
+}
