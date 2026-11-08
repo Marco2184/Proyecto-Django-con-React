@@ -1,0 +1,295 @@
+// Editable schema derived from Django models; no database queried.
+// Target schema after pending migrations, not live Neon. Columns and relations;
+// consult migrations for check constraints, functional indexes and data changes.
+
+Table auth_permission {
+  id integer [pk, not null]
+  name varchar(255) [not null]
+  content_type_id integer [not null]
+  codename varchar(100) [not null]
+}
+
+Table auth_group_permissions {
+  id integer [pk, not null]
+  group_id integer [not null]
+  permission_id integer [not null]
+}
+
+Table auth_group {
+  id integer [pk, not null]
+  name varchar(150) [not null, unique]
+}
+
+Table django_content_type {
+  id integer [pk, not null]
+  app_label varchar(100) [not null]
+  model varchar(100) [not null]
+}
+
+Table django_session {
+  session_key varchar(40) [pk, not null]
+  session_data text [not null]
+  expire_date timestamptz [not null]
+}
+
+Table django_admin_log {
+  id integer [pk, not null]
+  action_time timestamptz [not null]
+  user_id bigint [not null]
+  content_type_id integer
+  object_id text
+  object_repr varchar(200) [not null]
+  action_flag smallint [not null]
+  change_message text [not null]
+}
+
+Table usuarios_usuario_groups {
+  id bigint [pk, not null]
+  usuario_id bigint [not null]
+  group_id integer [not null]
+}
+
+Table usuarios_usuario_user_permissions {
+  id bigint [pk, not null]
+  usuario_id bigint [not null]
+  permission_id integer [not null]
+}
+
+Table usuarios_usuario {
+  id bigint [pk, not null]
+  password varchar(128) [not null]
+  last_login timestamptz
+  is_superuser boolean [not null]
+  email varchar(254) [not null, unique]
+  nombre varchar(150) [not null]
+  telefono varchar(20) [not null]
+  fecha_registro timestamptz [not null]
+  email_verificado boolean [not null]
+  token_verificacion uuid [not null]
+  cuenta_activa boolean [not null]
+  is_active boolean [not null]
+  is_staff boolean [not null]
+}
+
+Table usuarios_direccionenvio {
+  id bigint [pk, not null]
+  usuario_id bigint [not null]
+  calle varchar(250) [not null]
+  ciudad varchar(100) [not null]
+  departamento varchar(50) [not null]
+  codigo_postal varchar(10) [not null]
+  predeterminada boolean [not null]
+  creado_en timestamptz [not null]
+}
+
+Table usuarios_pedido {
+  id bigint [pk, not null]
+  usuario_id bigint [not null]
+  numero varchar(20) [not null, unique]
+  fecha timestamptz [not null]
+  monto_total decimal(10,2) [not null]
+  estado varchar(20) [not null]
+  direccion_envio_id bigint
+  direccion_texto text [not null]
+  metodo_pago varchar(20) [not null]
+  estado_pago varchar(20) [not null]
+  referencia_pago varchar(80) [not null]
+  fecha_estimada_entrega date
+  entregado_en timestamptz
+  cancelado_en timestamptz
+  motivo_cancelacion varchar(250) [not null]
+  checkout_key uuid
+  checkout_hash varchar(64) [not null]
+  checkout_response jsonb
+}
+
+Table usuarios_pedidoitem {
+  id bigint [pk, not null]
+  pedido_id bigint [not null]
+  producto_id bigint
+  producto_nombre varchar(200) [not null]
+  producto_imagen varchar(200) [not null]
+  cantidad integer [not null]
+  precio_unitario decimal(10,2) [not null]
+  subtotal decimal(10,2) [not null]
+}
+
+Table usuarios_wishlistitem {
+  id bigint [pk, not null]
+  usuario_id bigint [not null]
+  producto_id bigint [not null]
+  precio_guardado decimal(10,2) [not null]
+  creado_en timestamptz [not null]
+}
+
+Table usuarios_pricenotification {
+  id bigint [pk, not null]
+  item_id bigint [not null]
+  precio_anterior decimal(10,2) [not null]
+  precio_actual decimal(10,2) [not null]
+  leida boolean [not null]
+  creado_en timestamptz [not null]
+}
+
+Table usuarios_pedidotimeline {
+  id bigint [pk, not null]
+  pedido_id bigint [not null]
+  estado varchar(20) [not null]
+  descripcion varchar(250) [not null]
+  creado_en timestamptz [not null]
+}
+
+Table productos_plataforma {
+  id bigint [pk, not null]
+  nombre varchar(50) [not null, unique]
+  slug varchar(50) [not null, unique]
+  icono varchar(50) [not null]
+}
+
+Table productos_categoria {
+  id bigint [pk, not null]
+  nombre varchar(100) [not null, unique]
+  slug varchar(50) [not null, unique]
+  padre_id bigint
+}
+
+Table productos_producto_plataformas {
+  id bigint [pk, not null]
+  producto_id bigint [not null]
+  plataforma_id bigint [not null]
+}
+
+Table productos_producto {
+  id bigint [pk, not null]
+  nombre varchar(200) [not null]
+  slug varchar(250) [not null, unique]
+  descripcion text [not null]
+  categoria_id bigint
+  precio decimal(10,2) [not null]
+  precio_original decimal(10,2)
+  stock integer [not null]
+  imagen_principal varchar(100)
+  imagen_url varchar(200) [not null]
+  ventas integer [not null]
+  valoracion decimal(3,1) [not null]
+  especificaciones jsonb [not null]
+  activo timestamptz [not null]
+  actualizado timestamptz [not null]
+}
+
+Table productos_review {
+  id bigint [pk, not null]
+  producto_id bigint [not null]
+  usuario_id bigint [not null]
+  compra_id bigint
+  puntuacion smallint [not null]
+  comentario varchar(2000) [not null]
+  visible boolean [not null]
+  motivo_moderacion varchar(250) [not null]
+  moderador_id bigint
+  creado_en timestamptz [not null]
+  actualizado_en timestamptz [not null]
+}
+
+Table productos_stockmovement {
+  id bigint [pk, not null]
+  producto_id bigint
+  producto_nombre varchar(200) [not null]
+  administrador_id bigint
+  administrador_nombre varchar(150) [not null]
+  pedido_id bigint
+  tipo varchar(20) [not null]
+  cantidad integer [not null]
+  stock_anterior integer [not null]
+  stock_posterior integer [not null]
+  motivo varchar(250) [not null]
+  creado_en timestamptz [not null]
+  request_id uuid [unique]
+}
+
+Table productos_imagenproducto {
+  id bigint [pk, not null]
+  producto_id bigint [not null]
+  imagen varchar(100) [not null]
+  url varchar(200) [not null]
+  orden integer [not null]
+}
+
+Table carrito_promotion {
+  id bigint [pk, not null]
+  codigo varchar(30) [not null, unique]
+  tipo varchar(15) [not null]
+  valor decimal(10,2) [not null]
+  activo boolean [not null]
+  inicio timestamptz
+  vencimiento timestamptz
+  limite_total integer
+  limite_usuario integer
+  minimo_compra decimal(10,2) [not null]
+  descuento_maximo decimal(10,2)
+  usos integer [not null]
+  actualizado_en timestamptz [not null]
+}
+
+Table carrito_couponuse {
+  id bigint [pk, not null]
+  promocion_id bigint [not null]
+  usuario_id bigint [not null]
+  pedido_id bigint [not null, unique]
+  descuento decimal(10,2) [not null]
+  creado_en timestamptz [not null]
+}
+
+Table carrito_carrito {
+  id bigint [pk, not null]
+  usuario_id bigint [not null, unique]
+  codigo_cupon varchar(30) [not null]
+  creado timestamptz [not null]
+  actualizado timestamptz [not null]
+}
+
+Table carrito_itemcarrito {
+  id bigint [pk, not null]
+  carrito_id bigint [not null]
+  producto_id bigint [not null]
+  cantidad integer [not null]
+  precio_agregado decimal(10,2) [not null]
+  agregado timestamptz [not null]
+}
+
+Ref: auth_permission.content_type_id > django_content_type.id
+Ref: auth_group_permissions.group_id > auth_group.id
+Ref: auth_group_permissions.permission_id > auth_permission.id
+Ref: django_admin_log.user_id > usuarios_usuario.id
+Ref: django_admin_log.content_type_id > django_content_type.id
+Ref: usuarios_usuario_groups.usuario_id > usuarios_usuario.id
+Ref: usuarios_usuario_groups.group_id > auth_group.id
+Ref: usuarios_usuario_user_permissions.usuario_id > usuarios_usuario.id
+Ref: usuarios_usuario_user_permissions.permission_id > auth_permission.id
+Ref: usuarios_direccionenvio.usuario_id > usuarios_usuario.id
+Ref: usuarios_pedido.usuario_id > usuarios_usuario.id
+Ref: usuarios_pedido.direccion_envio_id > usuarios_direccionenvio.id
+Ref: usuarios_pedidoitem.pedido_id > usuarios_pedido.id
+Ref: usuarios_pedidoitem.producto_id > productos_producto.id
+Ref: usuarios_wishlistitem.usuario_id > usuarios_usuario.id
+Ref: usuarios_wishlistitem.producto_id > productos_producto.id
+Ref: usuarios_pricenotification.item_id > usuarios_wishlistitem.id
+Ref: usuarios_pedidotimeline.pedido_id > usuarios_pedido.id
+Ref: productos_categoria.padre_id > productos_categoria.id
+Ref: productos_producto_plataformas.producto_id > productos_producto.id
+Ref: productos_producto_plataformas.plataforma_id > productos_plataforma.id
+Ref: productos_producto.categoria_id > productos_categoria.id
+Ref: productos_review.producto_id > productos_producto.id
+Ref: productos_review.usuario_id > usuarios_usuario.id
+Ref: productos_review.compra_id > usuarios_pedidoitem.id
+Ref: productos_review.moderador_id > usuarios_usuario.id
+Ref: productos_stockmovement.producto_id > productos_producto.id
+Ref: productos_stockmovement.administrador_id > usuarios_usuario.id
+Ref: productos_stockmovement.pedido_id > usuarios_pedido.id
+Ref: productos_imagenproducto.producto_id > productos_producto.id
+Ref: carrito_couponuse.promocion_id > carrito_promotion.id
+Ref: carrito_couponuse.usuario_id > usuarios_usuario.id
+Ref: carrito_couponuse.pedido_id > usuarios_pedido.id
+Ref: carrito_carrito.usuario_id > usuarios_usuario.id
+Ref: carrito_itemcarrito.carrito_id > carrito_carrito.id
+Ref: carrito_itemcarrito.producto_id > productos_producto.id

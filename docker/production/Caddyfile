@@ -1,0 +1,18 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+http://:8080 {
+    respond /healthz "ok" 200
+}
+
+{$DOMAIN} {
+    encode gzip
+    header Strict-Transport-Security "max-age=31536000"
+    reverse_proxy frontend:80
+    handle_errors {
+        header Content-Type "text/html; charset=utf-8"
+        respond "<!doctype html><html lang='es'><meta charset='utf-8'><meta name='viewport' content='width=device-width'><title>Monolith temporalmente no disponible</title><body><h1>Monolith temporalmente no disponible</h1><p>No se pudo contactar con el servidor. Intenta nuevamente en unos momentos.</p><a href='/'>Volver a intentar</a></body></html>" {err.status_code}
+    }
+}

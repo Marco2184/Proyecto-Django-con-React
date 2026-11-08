@@ -1,0 +1,17 @@
+[Unit]
+Description=Monolith PostgreSQL and media backup to private Cloud Storage
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/monolith
+EnvironmentFile=/opt/monolith/.env.production
+UMask=0077
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.production.yaml run --rm --no-deps backup
+ExecStart=/usr/bin/env gcloud storage rsync /opt/monolith/.private/gce-backups gs://${BACKUP_GCS_BUCKET}/monolith/ --recursive --project=${GCP_PROJECT_ID} --quiet
+# Prune only this job's completed local backups, and only after successful upload.
+ExecStart=/usr/bin/find /opt/monolith/.private/gce-backups -maxdepth 1 -type f -mtime +7 -name neon-*.dump -delete
+ExecStart=/usr/bin/find /opt/monolith/.private/gce-backups -maxdepth 1 -type f -mtime +7 -name media-*.tar.gz -delete
+ExecStart=/usr/bin/find /opt/monolith/.private/gce-backups -maxdepth 1 -type f -mtime +7 -name *.sha256 -delete
