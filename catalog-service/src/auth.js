@@ -1,3 +1,4 @@
+import { djangoProxyHeaders } from './djangoProxyHeaders.js';
 import {AsyncLocalStorage} from 'node:async_hooks';
 import {localeResponses, language} from './locale.js';
 import { Router } from 'express';
@@ -40,7 +41,7 @@ export function authRouter({backendUrl = process.env.DJANGO_API_URL || 'http://1
     try {
       const body = JSON.stringify(payload);
       const serviceToken = jwt.sign({typ:'service', purpose:'/api' + path, body_hash:crypto.createHash('sha256').update(body).digest('hex')}, secret, {algorithm:'HS256', issuer, audience:'monolith-internal', expiresIn:'30s'});
-      const headers = {'content-type':'application/json', 'accept-language': locale.getStore() || 'es'};
+      const headers = {'content-type':'application/json', 'accept-language': locale.getStore() || 'es', ...djangoProxyHeaders(backendUrl)};
       if (path.startsWith('/auth/node/')) headers.authorization = `Bearer ${serviceToken}`;
       const response = await fetchImpl(`${backendUrl.replace(/\/$/,'')}${path}`, {method:'POST', headers, body, signal:controller.signal});
       const data = await response.json().catch(() => ({}));

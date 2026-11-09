@@ -1,3 +1,4 @@
+import { djangoProxyHeaders } from './djangoProxyHeaders.js';
 import {localeResponses, language} from './locale.js';
 
 import express from 'express';
@@ -135,7 +136,7 @@ export function createApp({
       const upstream = await fetchImpl(url.toString(), {
         signal: controller.signal,
         headers: {
-          Accept: 'application/json', 'Accept-Language': language(req)
+          Accept: 'application/json', 'Accept-Language': language(req), ...djangoProxyHeaders(backendUrl)
         },
         cache: 'no-store'
       });
