@@ -40,9 +40,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    mem_limit: 128m
-    cpus: 0.25
-
+    mem_limit: 768m
   frontend:
     <<: *runtime
     image: monolith-frontend:${RELEASE:-gce-80}
@@ -58,12 +56,10 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    mem_limit: 128m
-    cpus: 0.25
-
+    mem_limit: 512m
   django:
     <<: *runtime
-    image: monolith-django:${RELEASE:-gce-80}
+    image: monolith-django:gce-80-catalog
     build: .
     env_file: [.env.production]
     environment: *django-env
@@ -73,7 +69,7 @@ services:
       - >-
         python manage.py collectstatic --noinput &&
         exec gunicorn monolith.wsgi:application --bind 0.0.0.0:8000
-        --workers 2 --threads 2 --timeout 60 --max-requests 1000
+        --workers 2 --threads 4 --timeout 60 --max-requests 1000
         --max-requests-jitter 100 --access-logfile -
         --access-logformat '%(m)s %(s)s %(L)s'
     volumes: [media:/app/media]
@@ -85,12 +81,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    mem_limit: 1536m
-    cpus: 1.25
-
+    mem_limit: 2048m
   node:
     <<: *runtime
-    image: monolith-node:${RELEASE:-gce-80}
+    image: monolith-node:gce-80-product-cache
     build: ./catalog-service
     environment:
       NODE_ENV: production
@@ -102,7 +96,8 @@ services:
       COOKIE_SAME_SITE: lax
       JWT_SHARED_SECRET: ${JWT_SHARED_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set a different refresh JWT secret}
-      CACHE_TTL_MS: "0"
+      CACHE_TTL_MS: "5000"
+      MONOLITH_PERF_LOG: "0"
     depends_on:
       django: {condition: service_healthy}
     init: true
@@ -111,9 +106,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    mem_limit: 384m
-    cpus: 0.5
-
+    mem_limit: 512m
   media-init:
     image: monolith-django:${RELEASE:-gce-80}
     user: root

@@ -1,0 +1,18 @@
+services:
+  edge:
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  django:
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  node:
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535

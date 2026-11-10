@@ -1,3 +1,4 @@
+import { createCoalescedFetch } from './singleFlight.js';
 import { djangoProxyHeaders } from './djangoProxyHeaders.js';
 import {localeResponses, language} from './locale.js';
 
@@ -39,6 +40,7 @@ export function createApp({
     .filter(Boolean);
 
   const cache = new Map();
+  const sharedFetch = createCoalescedFetch();
 
   app.disable('x-powered-by');
   app.use(helmet());
@@ -87,11 +89,19 @@ export function createApp({
       });
     }
 
-    // Los productos y su stock siempre se consultan en Django.
-    // Solo las categorías y plataformas pueden utilizar caché.
+    // Cache breve de listados públicos anónimos.
+    // Las compras y operaciones de stock siguen en Django.
+    const publicProductList = (
+      pathname === '/api/productos/' &&
+      !req.headers.authorization &&
+      !req.headers.cookie &&
+      !req.headers['x-api-key']
+    );
+
     const canCache = (
       pathname === '/api/plataformas/' ||
-      pathname === '/api/categorias/'
+      pathname === '/api/categorias/' ||
+      publicProductList
     );
 
     const backend = backendUrl.replace(/\/+$/, '');
@@ -114,7 +124,15 @@ export function createApp({
 
       if (cached && cached.until > Date.now()) {
         res.set('X-Catalog-Cache', 'HIT');
-        res.set('Cache-Control', 'no-store');
+        res.set(
+          'Cache-Control',
+          canCache &&
+          !req.headers.authorization &&
+          !req.headers.cookie &&
+          !req.headers['x-api-key']
+            ? 'public, max-age=2'
+            : 'no-store'
+        );
 
         return res
           .status(cached.status)
@@ -132,14 +150,35 @@ export function createApp({
       controller.abort();
     }, 8000);
 
+    const upstreamStartedAt = performance.now();
     try {
-      const upstream = await fetchImpl(url.toString(), {
+      const getUpstream = () => fetchImpl(url.toString(), {
         signal: controller.signal,
         headers: {
-          Accept: 'application/json', 'Accept-Language': language(req), ...djangoProxyHeaders(backendUrl)
+          Accept: 'application/json',
+          'Accept-Language': language(req),
+          ...djangoProxyHeaders(backendUrl)
         },
         cache: 'no-store'
       });
+
+      const upstream = await (
+        canCache && cacheTtlMs > 0
+          ? sharedFetch(key, getUpstream)
+          : getUpstream()
+      );
+
+      const upstreamMs = performance.now() - upstreamStartedAt;
+
+      if (process.env.MONOLITH_PERF_LOG === '1' &&
+          upstreamMs >= 750 && Math.random() < 0.1) {
+        console.log(JSON.stringify({
+          event: 'catalog_upstream_slow',
+          route: pathname,
+          status: upstream.status,
+          duration_ms: Math.round(upstreamMs)
+        }));
+      }
 
       const type = upstream.headers.get('content-type') || '';
 
@@ -168,7 +207,15 @@ export function createApp({
       }
 
       res.set('X-Catalog-Cache', 'BYPASS');
-      res.set('Cache-Control', 'no-store');
+      res.set(
+          'Cache-Control',
+          canCache &&
+          !req.headers.authorization &&
+          !req.headers.cookie &&
+          !req.headers['x-api-key']
+            ? 'public, max-age=2'
+            : 'no-store'
+        );
 
       res.status(upstream.status).json(body);
 
@@ -182,6 +229,17 @@ export function createApp({
         .catch(() => {});
 
     } catch (err) {
+      if (process.env.MONOLITH_PERF_LOG === '1') {
+        console.warn(JSON.stringify({
+          event: 'catalog_upstream_error',
+          route: pathname,
+          duration_ms: Math.round(performance.now() - upstreamStartedAt),
+          error: err?.name || 'Error',
+          cause_code: err?.cause?.code || null,
+          cause_name: err?.cause?.name || null
+        }));
+      }
+
       if (!res.headersSent) {
         res.status(502).json({
           error: 'No se pudo consultar el catálogo de Django'

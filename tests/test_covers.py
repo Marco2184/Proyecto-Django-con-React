@@ -48,10 +48,13 @@ class CatalogCoverTests(SimpleTestCase):
         for ids in [(25, 26), (14, 15, 16)]:
             self.assertEqual(len({entries[i]['url'] for i in ids}), len(ids))
 
-    def test_missing_official_cover_does_not_reuse_unsplash_or_old_file(self):
-        product = self.product(next(e for e in self.entries if e['product_id'] == 11))
-        self.assertEqual(product.imagen, '')
-        self.assertEqual(catalog_cover(product)['kind'], 'unavailable')
+    def test_local_cover_uses_catalog_artwork(self):
+        entry = next(e for e in self.entries if e['product_id'] == 11)
+        product = self.product(entry)
+        self.assertEqual(entry['url'], '/covers/the-elder-scrolls-vi.jpg')
+        self.assertEqual(product.imagen, entry['url'])
+        self.assertEqual(catalog_cover(product)['url'], entry['url'])
+        self.assertNotIn('unsplash', product.imagen)
 
     def test_unlisted_products_keep_their_current_images(self):
         product = Producto(pk=1, nombre='Console', slug='console', imagen_url='https://example.invalid/console.jpg')
@@ -62,9 +65,13 @@ class CatalogCoverTests(SimpleTestCase):
     def test_manifest_has_unique_ids_and_explicit_https_sources(self):
         self.assertEqual(len(self.entries), 20)
         self.assertEqual(len({e['product_id'] for e in self.entries}), 20)
-        self.assertEqual(sum(bool(e['url']) for e in self.entries), 19)
+        self.assertEqual(sum(bool(e['url']) for e in self.entries), 20)
         for entry in self.entries:
             self.assertTrue(entry['source_url'].startswith('https://'))
             if entry['url']:
-                self.assertTrue(entry['url'].startswith('https://'))
+                self.assertTrue(
+                        entry['url'].startswith('https://') or
+                        entry['url'].startswith('/covers/')
+                    )
+                self.assertNotIn('..', entry['url'])
                 self.assertNotIn('unsplash', entry['url'])

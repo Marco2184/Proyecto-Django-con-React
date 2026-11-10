@@ -65,7 +65,7 @@ def exclude_adult_content(qs):
     for term in ADULT_BLOCKLIST:
         condiciones |= Q(especificaciones_texto__icontains=term)
 
-    return qs.exclude(condiciones).distinct()
+    return qs.exclude(condiciones)
 
 
 def _matches_short_search(producto, term):

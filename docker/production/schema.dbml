@@ -293,3 +293,18 @@ Ref: carrito_couponuse.pedido_id > usuarios_pedido.id
 Ref: carrito_carrito.usuario_id > usuarios_usuario.id
 Ref: carrito_itemcarrito.carrito_id > carrito_carrito.id
 Ref: carrito_itemcarrito.producto_id > productos_producto.id
+
+Table authtoken_token {
+  key varchar(40) [pk, not null]
+  created timestamptz [not null]
+  user_id bigint [not null, unique]
+}
+
+Table django_migrations {
+  id bigint [pk, not null]
+  app varchar(255) [not null]
+  name varchar(255) [not null]
+  applied timestamptz [not null]
+}
+
+Ref: authtoken_token.user_id > usuarios_usuario.id

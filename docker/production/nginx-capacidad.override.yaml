@@ -1,0 +1,8 @@
+services:
+  frontend:
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    volumes:
+      - ./docker/production/nginx-main-8192.conf:/etc/nginx/nginx.conf:ro
